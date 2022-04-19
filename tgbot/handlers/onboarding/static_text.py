@@ -1,7 +1,6 @@
-start_created = "Sup, {first_name}!"
-start_not_created = "Welcome back, {first_name}!"
-unlock_secret_room = "Congratulations! You've opened a secret room👁‍🗨. There is some information for you:\n" \
-           "<b>Users</b>: {user_count}\n" \
-           "<b>24h active</b>: {active_24}"
-github_button_text = "GitHub"
-secret_level_button_text = "Secret level🗝"
+start_created = """Доброе время, {first_name}! 
+Этот бот нужен, для хранения большого количества файлов и информции по учебе в одном месте просто потому почему бы и нет.
+Все команды можно просмотреть, тыкнув на кнопку меню. 
+"""
+
+start_not_created = "Доброе время, {first_name}!"

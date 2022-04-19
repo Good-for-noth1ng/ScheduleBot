@@ -11,18 +11,71 @@ from dtb.settings import DEBUG
 from tgbot.handlers.utils.info import extract_user_data_from_update
 from utils.models import CreateUpdateTracker, nb, CreateTracker, GetOrNoneManager
 
+class Schedule(models.Model):
+    
+    class Day(models.TextChoices):
+        MONDAY = 'Пн'
+        TUESDAY = 'Вт'
+        WEDNSDAY = 'Ср'
+        THURSDAY = 'Чт'
+        FRIDAY = 'Пт'
+        SATURDAY = 'Сб'
+
+    class Time(models.TextChoices):
+        first = '8:30'
+        second = '10:10'
+        third = '11:50'
+        fourth = '13:50'
+        fifth = '15:30'
+        sixth = '17:10'
+        seventh = '18:50'
+        eighth = '20:30'
+
+    day = models.CharField(max_length=2, choices=Day.choices)
+    time = models.CharField(max_length=5, choices=Time.choices, default="")
+    lesson = models.CharField(max_length=200, default="")
+    group = models.CharField(max_length=200, default="")
+    teacher = models.CharField(max_length=200, default="")
+    isOnline = models.CharField(max_length=200, default="")
+
+class Links(models.Model):
+    url = models.URLField(max_length=200, default="")
+    lesson = models.CharField(max_length=200, default="")
+
+class Books(models.Model):
+    name = models.CharField(max_length=200, default="")
+    url = models.URLField(max_length=500, default="")
+
+class Requirements(models.Model):
+    name = models.CharField(max_length=200, default="")
+    text = models.CharField(max_length=5000, default="")
+    photo_id = models.CharField(max_length=500, default="")
+    
+class RequirementFile(models.Model):
+    requirements = models.ForeignKey(Requirements, on_delete=models.CASCADE)
+    file_field = models.FileField(default=None, null=True)
+
+class Homework(models.Model):
+    name = models.CharField(max_length=200, default="")
+    task_doc = models.FileField(default=None, null=True)
+    task_text = models.CharField(max_length=5000, default="")
+    task_photo_id = models.CharField(max_length=500, default="")
+
+class Solution(models.Model):
+    name = models.CharField(max_length=200, default="")
+    file_field = models.FileField(default=None, null=True)
+    photo_id = models.CharField(max_length=500, default="")    
+    text = models.CharField(max_length=200, default="")
 
 class AdminUserManager(Manager):
     def get_queryset(self):
         return super().get_queryset().filter(is_admin=True)
-
 
 class User(CreateUpdateTracker):
     user_id = models.PositiveBigIntegerField(primary_key=True)  # telegram_id
     username = models.CharField(max_length=32, **nb)
     first_name = models.CharField(max_length=256)
     last_name = models.CharField(max_length=256, **nb)
-    language_code = models.CharField(max_length=8, help_text="Telegram client's lang", **nb)
     deep_link = models.CharField(max_length=64, **nb)
 
     is_blocked_bot = models.BooleanField(default=False)
@@ -74,22 +127,3 @@ class User(CreateUpdateTracker):
             return f'@{self.username}'
         return f"{self.first_name} {self.last_name}" if self.last_name else f"{self.first_name}"
 
-
-class Location(CreateTracker):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
-
-    objects = GetOrNoneManager()
-
-    def __str__(self):
-        return f"user: {self.user}, created at {self.created_at.strftime('(%H:%M, %d %B %Y)')}"
-
-    def save(self, *args, **kwargs):
-        super(Location, self).save(*args, **kwargs)
-        # Parse location with arcgis
-        from arcgis.tasks import save_data_from_arcgis
-        if DEBUG:
-            save_data_from_arcgis(latitude=self.latitude, longitude=self.longitude, location_id=self.pk)
-        else:
-            save_data_from_arcgis.delay(latitude=self.latitude, longitude=self.longitude, location_id=self.pk)

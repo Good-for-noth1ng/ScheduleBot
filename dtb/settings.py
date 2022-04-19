@@ -11,6 +11,10 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+# Path to folder with user's files. 
+MEDIA_URL = '/homework_files/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'homework_files')
+
 # Load env variables from file
 dotenv_file = BASE_DIR / ".env"
 if os.path.isfile(dotenv_file):
@@ -45,7 +49,6 @@ INSTALLED_APPS = [
 
     # local apps
     'tgbot.apps.TgbotConfig',
-    'arcgis',
 ]
 
 MIDDLEWARE = [
@@ -156,12 +159,20 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 if TELEGRAM_TOKEN is None:
     logging.error(
         "Please provide TELEGRAM_TOKEN in .env file.\n"
-        "Example of .env file: https://github.com/ohld/django-telegram-bot/blob/main/.env_example"
     )
     sys.exit(1)
 
 TELEGRAM_LOGS_CHAT_ID = os.getenv("TELEGRAM_LOGS_CHAT_ID", default=None)
 
+
+#------> HEROKU APP
+PORT = int(os.environ.get('PORT', 80))
+HEROKU_APP_NAME = os.getenv("HEROKU_APP_NAME")
+if HEROKU_APP_NAME is None:
+    logging.error("Heroku name needs to be set")
+    sys.exit(1)
+
+    
 # -----> SENTRY
 # import sentry_sdk
 # from sentry_sdk.integrations.django import DjangoIntegration

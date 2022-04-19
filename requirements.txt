@@ -13,7 +13,6 @@ whitenoise
 # Django 3.0 async requirements
 gunicorn
 uvicorn
-uvloop
 httptools
 
 # Databases

@@ -1,0 +1,7 @@
+CHOOSE_TIME = "choosetime"
+CHOOSE_TIME_FOR_EDITING="choosetimeforediting"
+EDIT_OR_DELETE = "editordelete"
+EDIT_LESSON = "editlesson"
+EDIT_GROUP = "editgroup"
+EDIT_TEACHER = "editteacher"
+EDIT_PLACE = "editplace"

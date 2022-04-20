@@ -14,7 +14,7 @@ from tgbot.models import User
 
 def command_start(update: Update, context: CallbackContext) -> None:
     u, created = User.get_user_and_created(update, context)
-    
+    update.message.reply_text("start pressed")
     if created:
         text = static_text.start_created.format(first_name=u.first_name)
     else:

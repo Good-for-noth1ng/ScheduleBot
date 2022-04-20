@@ -33,10 +33,10 @@ def send_requirements(update: Update, context: CallbackContext):
     requirements = Requirements.objects.all()
     if requirements:
         for requirement in requirements:
-            text = f'{requirement.name}:\n'
+            text = f'📒 {requirement.name}\n'
             requirement_files = RequirementFile.objects.all().filter(requirements=requirement)
             if requirement.text:
-                text += f'{requirement.text}\n'
+                text += f'📄 {requirement.text}\n'
                 update.message.reply_text(text=text)
             if requirement_files:
                 for requirement_file in requirement_files:

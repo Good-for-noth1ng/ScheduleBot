@@ -20,7 +20,7 @@ def command_start(update: Update, context: CallbackContext) -> None:
     else:
         text = static_text.start_not_created.format(first_name=u.first_name)
 
-    update.message.reply_text(text=text, parse_mode=True, reply_markup=make_keiboard_for_start())
+    update.message.reply_text(text=text, reply_markup=make_keiboard_for_start())
 
 def make_keiboard_for_start() -> InlineKeyboardMarkup:
     buttons = [[

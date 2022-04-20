@@ -336,13 +336,12 @@ def run_pooling():
     dp = setup_dispatcher(dp)
 
     updater.start_webhook(
-        listen="0.0.0.0", 
+        listen="127.0.0.1", 
         port=PORT, 
         url_path=TELEGRAM_TOKEN,
         webhook_url='https://' + HEROKU_APP_NAME +'.herokuapp.com/' + TELEGRAM_TOKEN
-        
     )
-
+    
     # bot_info = Bot(TELEGRAM_TOKEN).get_me()
     # bot_link = f"https://t.me/" + bot_info["username"]
 

@@ -166,7 +166,8 @@ TELEGRAM_LOGS_CHAT_ID = os.getenv("TELEGRAM_LOGS_CHAT_ID", default=None)
 
 
 #------> HEROKU APP
-PORT = int(os.environ.get('PORT', 80))
+# PORT = int(os.environ.get('PORT', 80))
+PROT = int(os.getenv("PORT"))
 HEROKU_APP_NAME = os.getenv("HEROKU_APP_NAME")
 if HEROKU_APP_NAME is None:
     logging.error("Heroku name needs to be set")

@@ -13,7 +13,7 @@ from tgbot.handlers.utils.info import extract_user_data_from_update
 from tgbot.models import User
 
 def command_start(update: Update, context: CallbackContext):
-    # u, created = User.get_user_and_created(update, context)
+    u, created = User.get_user_and_created(update, context)
     update.message.reply_text("start pressed")
     # if created:
     #     text = static_text.start_created.format(first_name=u.first_name)

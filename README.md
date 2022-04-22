@@ -1,5 +1,5 @@
 # django-telegram-bot
-Django + python-telegram-bot based on template of this guy: https://github.com/ohld/django-telegram-bot/.
+Django + python-telegram-bot based on template of [this guy](https://github.com/ohld/django-telegram-bot/).
 
 [![Sparkline](https://stars.medv.io/Naereen/badges.svg)](https://stars.medv.io/Naereen/badges)
 
@@ -10,7 +10,6 @@ Django + python-telegram-bot based on template of this guy: https://github.com/o
 
 * Database: Sqlite3
 * Telegram API usage in pooling or [webhook mode](https://core.telegram.org/bots/api#setwebhook)
-* Reverse geocode of user via [ArcGis](https://www.arcgis.com/)
 * Native telegram [commands in menu](https://github.com/ohld/django-telegram-bot/blob/main/.github/imgs/bot_commands_example.jpg)
 
 Built-in Telegram bot methods:

@@ -14,12 +14,11 @@ from tgbot.models import User
 
 def command_start(update: Update, context: CallbackContext):
     u, created = User.get_user_and_created(update, context)
-    update.message.reply_text("start pressed")
-    # if created:
-    #     text = static_text.start_created.format(first_name=u.first_name)
-    # else:
-    #     text = static_text.start_not_created.format(first_name=u.first_name)
-    # update.message.reply_text(text=text, reply_markup=make_keiboard_for_start())
+    if created:
+        text = static_text.start_created.format(first_name=u.first_name)
+    else:
+        text = static_text.start_not_created.format(first_name=u.first_name)
+    update.message.reply_text(text=text, reply_markup=make_keiboard_for_start())
 
 def make_keiboard_for_start() -> InlineKeyboardMarkup:
     buttons = [[

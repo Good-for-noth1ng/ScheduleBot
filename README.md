@@ -15,10 +15,10 @@ Django + python-telegram-bot based on template of [this guy](https://github.com/
 Built-in Telegram bot methods:
 * `/start` — start django-bot
 * `/sendschedule` — bot sends you info about your schedule (time, lessons, teachers...)
-* `/links` — sending list of useful or necessary urls 
+* `/links` — sending list of useful or necessary urls, for ex. commands in msteams 
 * `/books` - sending list of useful or necessary urls for downloading books
-* `/requirements` - showing list of teacher's requirements (for example, number of final tests and their topics)
-* `/homework` - sending bunch of tasks for homework
+* `/requirements` - showing list of teacher's requirements (for example, num of tests)
+* `/homework` - sending for homework
 * `/solutions` - sending other people solutions they shared with
 * `/edit<any of commands above>` - allows users to send files, photos and texts. Makes easier to share and keep in one place all of the data
  

@@ -335,6 +335,7 @@ def run_pooling():
     dp = updater.dispatcher
     dp = setup_dispatcher(dp)
 
+    #Run with webhook
     updater.start_webhook(
         listen="0.0.0.0", 
         port=PORT, 
@@ -342,12 +343,12 @@ def run_pooling():
         webhook_url='https://' + HEROKU_APP_NAME +'.herokuapp.com/' + TELEGRAM_TOKEN
     )
     
+    #Run in pooling mode
     # bot_info = Bot(TELEGRAM_TOKEN).get_me()
     # bot_link = f"https://t.me/" + bot_info["username"]
-
     # print(f"Pooling of '{bot_link}' started")
-
     # updater.start_polling()
+
     updater.idle()
 
 

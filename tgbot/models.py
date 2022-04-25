@@ -39,18 +39,21 @@ class Schedule(models.Model):
     isOnline = models.CharField(max_length=200, default="")
     
     @classmethod
-    def update_schedule(cls, user_data):
-        schedule, created = cls.objects.update_or_create(
-            day=user_data["day"],
-            time=user_data["time"],
-            defaults={
-                'lesson': user_data["lesson"],
-                'teacher': user_data["teacher"],
-                'group': context.user_data['group'],
-                'isOnline': context.user_data['isOnline']
-            }
-        )
-        schedule.save()
+    def update_schedule(cls, user_data, update: Update, context: CallbackContext):
+        try:
+            schedule, created = cls.objects.update_or_create(
+                day=user_data["day"],
+                time=user_data["time"],
+                defaults={
+                    'lesson': user_data["lesson"],
+                    'teacher': user_data["teacher"],
+                    'group': context.user_data['group'],
+                    'isOnline': context.user_data['isOnline']
+                }
+            )
+            schedule.save()
+        except Exception as e:
+            update.message.reply_text(str(e))
 
     @classmethod
     def deleting_schedule(cls, user_data):
@@ -58,7 +61,7 @@ class Schedule(models.Model):
         for sched in schedule:
             if sched:
                 sched.delete()
-                
+
     @property
     def get_id(self):
         return self.pk

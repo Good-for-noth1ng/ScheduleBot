@@ -97,19 +97,14 @@ class User(CreateUpdateTracker):
     def get_user_and_created(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
         """ python-telegram-bot's Update, Context --> User instance """
         data = extract_user_data_from_update(update)
-        update.message.reply_text(text="before")
-        try:
-            user, created = cls.objects.update_or_create(user_id=data["user_id"], defaults=data)
-        except Exception as e:
-            update.message.reply_text(text=str(e))
-        # u, created = cls.objects.update_or_create(user_id=data["user_id"], defaults=data)
-        # if created:
-        #     # Save deep_link to User model
-        #     if context is not None and context.args is not None and len(context.args) > 0:
-        #         payload = context.args[0]
-        #         if str(payload).strip() != str(data["user_id"]).strip():  # you can't invite yourself
-        #             u.deep_link = payload
-        #             u.save()
+        u, created = cls.objects.update_or_create(user_id=data["user_id"], defaults=data)
+        if created:
+            # Save deep_link to User model
+            if context is not None and context.args is not None and len(context.args) > 0:
+                payload = context.args[0]
+                if str(payload).strip() != str(data["user_id"]).strip():  # you can't invite yourself
+                    u.deep_link = payload
+                    u.save()
 
         return user, created
 

@@ -122,7 +122,7 @@ def send_request_for_editing(update: Update, context: CallbackContext):
     
 def clear_chosen_time_field(update: Update, context: CallbackContext):
     lesson = update.message.text
-    Schedule.deleting_schedule(user_data=context.user_data)
+    Schedule.deleting_schedule(user_data=context.user_data())
     # time = context.user_data["time"]
     # day = context.user_data["day"]
     # schedule = Schedule.objects.all().filter(day=day).filter(time=time)
@@ -160,7 +160,7 @@ def change_group(update: Update, context: CallbackContext):
 
 def skip_teacher_change(update: Update, context: CallbackContext):
     context.user_data["teacher"] = ""
-    Schedule.update_schedule(user_data=context.user_data)
+    Schedule.update_schedule(user_data=context.user_data())
     # schedule, created = Schedule.objects.update_or_create(
     #     day=context.user_data["day"],
     #     time=context.user_data["time"],
@@ -177,7 +177,7 @@ def skip_teacher_change(update: Update, context: CallbackContext):
 
 def change_teacher(update: Update, context: CallbackContext):
     context.user_data["teacher"] = update.message.text
-    Schedule.update_schedule(user_data=context.user_data)
+    Schedule.update_schedule(user_data=context.user_data())
     # schedule, created = Schedule.objects.update_or_create(
     #     day=context.user_data["day"],
     #     time=context.user_data["time"],

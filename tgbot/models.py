@@ -38,26 +38,26 @@ class Schedule(models.Model):
     teacher = models.CharField(max_length=200, default="")
     isOnline = models.CharField(max_length=200, default="")
     
-    @classmethod
-    def update_schedule(cls, day, time, lesson, teacher, group, isOnline):
-        schedule, created = cls.objects.update_or_create(
-            day=user_data["day"],
-            time=user_data["time"],
-            defaults={
-                'lesson': user_data["lesson"],
-                'teacher': user_data["teacher"],
-                'group': context.user_data['group'],
-                'isOnline': context.user_data['isOnline']
-            }
-        )
-        schedule.save()
+    # @classmethod
+    # def update_schedule(cls, day, time, lesson, teacher, group, isOnline):
+    #     schedule, created = cls.objects.update_or_create(
+    #         day=user_data["day"],
+    #         time=user_data["time"],
+    #         defaults={
+    #             'lesson': user_data["lesson"],
+    #             'teacher': user_data["teacher"],
+    #             'group': context.user_data['group'],
+    #             'isOnline': context.user_data['isOnline']
+    #         }
+    #     )
+    #     schedule.save()
 
-    @classmethod
-    def deleting_schedule(cls, user_data):
-        schedule = cls.objects.all().filter(day=user_data["day"], time=user_data["time"])
-        for sched in schedule:
-            if sched:
-                sched.delete()
+    # @classmethod
+    # def deleting_schedule(cls, user_data):
+    #     schedule = cls.objects.all().filter(day=user_data["day"], time=user_data["time"])
+    #     for sched in schedule:
+    #         if sched:
+    #             sched.delete()
 
     @property
     def get_id(self):

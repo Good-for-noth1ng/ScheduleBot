@@ -98,8 +98,10 @@ class User(CreateUpdateTracker):
         """ python-telegram-bot's Update, Context --> User instance """
         data = extract_user_data_from_update(update)
         update.message.reply_text(text="before")
-        user, created = cls.objects.update_or_create(user_id=data["user_id"], defaults=data)
-        update.message.reply_text(text="after")
+        try:
+            user, created = cls.objects.update_or_create(user_id=data["user_id"], defaults=data)
+        except Exception as e:
+            update.message.reply_text(text=str(e))
         # u, created = cls.objects.update_or_create(user_id=data["user_id"], defaults=data)
         # if created:
         #     # Save deep_link to User model

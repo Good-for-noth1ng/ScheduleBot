@@ -113,8 +113,7 @@ def cancel_editing(update:Update, context: CallbackContext):
     return ConversationHandler.END
 
 def set_or_delete(update: Update, context: CallbackContext):
-    time = update.message.text
-    context.user_data["time"] = time
+    context.user_data["time"] = update.message.text
     update.message.reply_text(text=set_or_delete_text, reply_markup=make_keyboard_set_or_delete())
     
 def send_request_for_editing(update: Update, context: CallbackContext):
@@ -123,12 +122,13 @@ def send_request_for_editing(update: Update, context: CallbackContext):
     
 def clear_chosen_time_field(update: Update, context: CallbackContext):
     lesson = update.message.text
-    time = context.user_data["time"]
-    day = context.user_data["day"]
-    schedule = Schedule.objects.all().filter(day=day).filter(time=time)
-    for sched in schedule:
-        if sched:
-            sched.delete()
+    Schedule.deleting_schedule(user_data=context.user_data)
+    # time = context.user_data["time"]
+    # day = context.user_data["day"]
+    # schedule = Schedule.objects.all().filter(day=day).filter(time=time)
+    # for sched in schedule:
+    #     if sched:
+    #         sched.delete()
     update.message.reply_text(text=sucessful_deleting)
     context.user_data.clear()
     return ConversationHandler.END
@@ -159,48 +159,36 @@ def change_group(update: Update, context: CallbackContext):
     return EDIT_TEACHER
 
 def skip_teacher_change(update: Update, context: CallbackContext):
-    schedule, created = Schedule.objects.update_or_create(
-        day=context.user_data["day"],
-        time=context.user_data["time"],
-        defaults={
-            'lesson': context.user_data["lesson"],
-            'group': context.user_data['group'],
-            'isOnline': context.user_data['isOnline']
-        }
-    )
-    schedule.save()
+    context.user_data["teacher"] = ""
+    Schedule.update_schedule(user_data=context.user_data)
+    # schedule, created = Schedule.objects.update_or_create(
+    #     day=context.user_data["day"],
+    #     time=context.user_data["time"],
+    #     defaults={
+    #         'lesson': context.user_data["lesson"],
+    #         'group': context.user_data['group'],
+    #         'isOnline': context.user_data['isOnline']
+    #     }
+    # )
+    # schedule.save()
     context.user_data.clear()
     update.message.reply_text(text=successful_editing, reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
 
 def change_teacher(update: Update, context: CallbackContext):
-    schedule, created = Schedule.objects.update_or_create(
-        day=context.user_data["day"],
-        time=context.user_data["time"],
-        defaults={
-            'lesson': context.user_data["lesson"],
-            'teacher': update.message.text,
-            'group': context.user_data['group'],
-            'isOnline': context.user_data['isOnline']
-        }
-    )
-    schedule.save()
-    # try:
-    #     schedule = Schedule.objects.all().filter(day=day).filter(time=time)[0]
-    #     schedule.lesson = lesson
-    #     schedule.teacher = teacher
-    #     if context.user_data["group"]:
-    #         schedule.group = context.user_data["group"]
-    #     if context.user_data["isOnline"]:
-    #         schedule.isOnline = context.user_data["isOnline"]
-    #     schedule.save()
-    # except:
-    #     schedule = Schedule(day=day, time=time, lesson=lesson, teacher=teacher)
-    #     if context.user_data["group"]:
-    #         schedule.group = context.user_data["group"]
-    #     if context.user_data["isOnline"]:
-    #         schedule.isOnline = context.user_data["isOnline"]
-    #     schedule.save()
+    context.user_data["teacher"] = update.message.text
+    Schedule.update_schedule(user_data=context.user_data)
+    # schedule, created = Schedule.objects.update_or_create(
+    #     day=context.user_data["day"],
+    #     time=context.user_data["time"],
+    #     defaults={
+    #         'lesson': context.user_data["lesson"],
+    #         'teacher': update.message.text,
+    #         'group': context.user_data['group'],
+    #         'isOnline': context.user_data['isOnline']
+    #     }
+    # )
+    # schedule.save()
     update.message.reply_text(text=successful_editing, reply_markup=ReplyKeyboardRemove())
     context.user_data.clear()
     return ConversationHandler.END

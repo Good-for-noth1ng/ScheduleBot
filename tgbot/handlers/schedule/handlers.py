@@ -176,8 +176,15 @@ def skip_teacher_change(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 def change_teacher(update: Update, context: CallbackContext):
-    context.user_data["teacher"] = update.message.text
-    Schedule.update_schedule(user_data=context.user_data())
+    teacher = update.message.text
+    Schedule.update_schedule(
+        day=context.user_data["day"], 
+        time=context.user_data["time"],
+        lesson=context.user_data["lesson"],
+        teacher=teacher,
+        group=context.user_data['group'],
+        isOnline=context.user_data['isOnline']
+    )
     # schedule, created = Schedule.objects.update_or_create(
     #     day=context.user_data["day"],
     #     time=context.user_data["time"],

@@ -33,9 +33,9 @@ from dtb.settings import MEDIA_ROOT
 
 def send_solution(update: Update, context: CallbackContext):
     solutions = Solution.objects.all()
-    text = ""
     if solutions:
         for solution in solutions:
+            text = ""
             text += f"{solution.name}\n"
             if solution.text:
                 text += f"{solution.text}"
@@ -46,7 +46,6 @@ def send_solution(update: Update, context: CallbackContext):
             elif solution.photo_id:
                 update.message.reply_text(text=text)
                 update.message.reply_photo(photo=solution.photo_id)
-            text = ""
     else: 
         update.message.reply_text(no_solution_yet_text)
 

@@ -1,5 +1,5 @@
 # django-telegram-bot
-Django + python-telegram-bot based on template of [this guy](https://github.com/ohld/django-telegram-bot/).
+Telegram bot (Django + python-telegram-bot) based on template of [this guy](https://github.com/ohld/django-telegram-bot/).
 
 [![Sparkline](https://stars.medv.io/Naereen/badges.svg)](https://stars.medv.io/Naereen/badges)
 

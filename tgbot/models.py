@@ -37,6 +37,11 @@ class Schedule(models.Model):
     group = models.CharField(max_length=200, default="")
     teacher = models.CharField(max_length=200, default="")
     isOnline = models.CharField(max_length=200, default="")
+    
+
+    @property
+    def get_id(self):
+        return self.pk
 
 class Links(models.Model):
     url = models.URLField(max_length=200, default="")
@@ -92,8 +97,7 @@ class User(CreateUpdateTracker):
     def get_user_and_created(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
         """ python-telegram-bot's Update, Context --> User instance """
         data = extract_user_data_from_update(update)
-
-        user, created = User.objects.get_or_create()
+        user, created = cls.objects.update_or_create(user_id=data["user_id"], defaults=data)
         # u, created = cls.objects.update_or_create(user_id=data["user_id"], defaults=data)
         # if created:
         #     # Save deep_link to User model
@@ -103,7 +107,7 @@ class User(CreateUpdateTracker):
         #             u.deep_link = payload
         #             u.save()
 
-        # return u, created
+        return user, created
 
     @classmethod
     def get_user(cls, update: Update, context: CallbackContext) -> User:
@@ -127,4 +131,8 @@ class User(CreateUpdateTracker):
         if self.username:
             return f'@{self.username}'
         return f"{self.first_name} {self.last_name}" if self.last_name else f"{self.first_name}"
+
+    @property
+    def get_user_id(self):
+        return self.user_id
 

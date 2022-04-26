@@ -105,9 +105,9 @@ class Homework(models.Model):
         if homeworks[index].task_text:
             text += f"{homeworks[index].task_text}"
             update.message.reply_text(text=text)
-        elif homeworks[index].task_doc:
+        elif homeworks[index].task_file_id:
             update.message.reply_text(text=text)
-            update.message.reply_document(document=homeworks[index].task_doc)
+            update.message.reply_document(document=homeworks[index].task_file_id)
         elif homeworks[index].task_photo_id:
             update.message.reply_text(text=text)
             update.message.reply_photo(photo=homeworks[index].task_photo_id)

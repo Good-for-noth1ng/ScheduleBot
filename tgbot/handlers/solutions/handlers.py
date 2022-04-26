@@ -90,7 +90,7 @@ def add_task_text(update: Update, context: CallbackContext):
 def add_task_file(update: Update, context: CallbackContext):
     name = context.user_data["solution_name"]
     file_id = update.message.document.file_id
-    solution = Solution(name=name,file_id=file_id)
+    solution = Solution(name=name, file_id=file_id)
     solution.save()
     update.message.reply_text(solution_is_added_text)
     context.user_data.clear()

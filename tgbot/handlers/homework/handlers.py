@@ -45,20 +45,9 @@ def ask_which_homework(update: Update, context: CallbackContext):
         return ConversationHandler.END
 
 def send_homework(update: Update, context: CallbackContext):
-    homeworks = Homework.objects.all()
-    if homeworks:
-        for homework in homeworks:
-            text = ""
-            text += f"{homework.name}\n"
-            if homework.task_text:
-                text += f"{homework.task_text}"
-                update.message.reply_text(text=text)
-            if homework.task_doc:
-                update.message.reply_text(text=text)
-                update.message.reply_document(document=homework.task_doc)
-            if homework.task_photo_id:
-                update.message.reply_text(text=text)
-                update.message.reply_photo(photo=homework.task_photo_id)
+    chosen_homework_index = int(update.message.text) - 1
+    Homework.sending_chosed_homewor(index=chosen_homework_index, update=update)
+    return ConversationHandler.END
 
 def ask_add_or_delete(update: Update, context: CallbackContext):
     update.message.reply_text(text=add_or_delete_text, reply_markup=make_keyboard_add_or_delete_homework())
@@ -69,18 +58,27 @@ def start_add(update: Update, context: CallbackContext):
     return ADD_HMWRK_NM_STATE
 
 def start_delete(update: Update, context: CallbackContext):
-    homeworks = Homework.objects.all()
-    text = ""
-    if homeworks:
+    homework_num = Homework.get_num_of_homework()
+    if homework_num > 0:
         update.message.reply_text(text=choose_homework_to_delete_text)
-        for i in range(0, len(homeworks)):            
-            text += f"<--------{i + 1}-------->\n"
-            text += f"{homeworks[i].name}\n"
-        update.message.reply_text(text=text, reply_markup=make_keyboard_to_delete_homework(len(homeworks)))
+        text = Homework.make_string_for_choosing_homework()
+        update.message.reply_text(text=text, reply_markup=make_keyboard_to_choose_or_delete(link_list_lenght=homework_num))
         return DLT_HMWRK_STATE
-    else: 
-        update.message.reply_text(nothing_to_delete_text)
+    else:
+        update.message.reply_text(text=nothing_to_delete_text)
         return ConversationHandler.END
+    # homeworks = Homework.objects.all()
+    # text = ""
+    # if homeworks:
+    #     update.message.reply_text(text=choose_homework_to_delete_text)
+    #     for i in range(0, len(homeworks)):            
+    #         text += f"<--------{i + 1}-------->\n"
+    #         text += f"{homeworks[i].name}\n"
+    #     update.message.reply_text(text=text, reply_markup=make_keyboard_to_delete_homework(len(homeworks)))
+    #     return DLT_HMWRK_STATE
+    # else: 
+    #     update.message.reply_text(nothing_to_delete_text)
+    #     return ConversationHandler.END
 
 def add_name(update: Update, context: CallbackContext):
     context.user_data["homework_name"] = update.message.text
@@ -103,11 +101,8 @@ def add_task_text(update: Update, context: CallbackContext):
 
 def add_task_file(update: Update, context: CallbackContext):
     name = context.user_data["homework_name"]
-    document = update.message.document
-    download_path = os.path.join(MEDIA_ROOT, document.file_name)
-    task = document.get_file().download(custom_path=download_path)     
-    homework = Homework(name=name)
-    homework.task_doc = task
+    file_id = update.message.document.file_id
+    homework = Homework(name=name, task_file_id=file_id)
     homework.save()
     update.message.reply_text(homework_is_added_text)
     context.user_data.clear()

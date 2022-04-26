@@ -247,7 +247,6 @@ def setup_dispatcher(dp):
     ))
 
     #send homework list
-    dp.add_handler(CommandHandler("homework", homework_handlers.send_homework))
     dp.add_handler(ConversationHandler(
         entry_points=[
             CommandHandler("homework", homework_handlers.ask_which_homework)

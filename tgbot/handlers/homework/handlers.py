@@ -8,6 +8,7 @@ from pathlib import Path
 
 from tgbot.models import Homework
 from tgbot.handlers.homework.static_text import (
+    which_homework_text,
     no_homework_yet_text,
     add_or_delete_text,
     put_homework_name_text,
@@ -22,8 +23,9 @@ from tgbot.handlers.homework.static_text import (
     DELETE_HMWRK_BUTTON,
     CANCEL_DELETE_HMWRK_BUTTON
 )
-from tgbot.handlers.homework.keyboards import make_keyboard_add_or_delete_homework, make_keyboard_to_delete_homework
+from tgbot.handlers.homework.keyboards import make_keyboard_add_or_delete_homework, make_keyboard_to_choose_or_delete
 from tgbot.handlers.homework.conversation_state import (
+    SEND_HOMEWORK_STATE,
     ADD_HMWRK_NM_STATE, 
     ADD_HMWRK_TSK_STATE, 
     ADD_OR_DLT_STATE, 
@@ -31,11 +33,22 @@ from tgbot.handlers.homework.conversation_state import (
 )
 from dtb.settings import MEDIA_ROOT
 
+def ask_which_homework(update: Update, context: CallbackContext):
+    homework_num = Homework.get_num_of_homework()
+    if homework_num > 0:
+        update.message.reply_text(text=which_homework_text)
+        text = Homework.make_string_for_choosing_homework()
+        update.message.reply_text(text=text, reply_markup=make_keyboard_to_choose_or_delete(link_list_lenght=homework_num))
+        return SEND_HOMEWORK_STATE
+    else:
+        update.message.reply_text(no_homework_yet_text)
+        return ConversationHandler.END
+
 def send_homework(update: Update, context: CallbackContext):
     homeworks = Homework.objects.all()
-    text = ""
     if homeworks:
         for homework in homeworks:
+            text = ""
             text += f"{homework.name}\n"
             if homework.task_text:
                 text += f"{homework.task_text}"
@@ -46,9 +59,6 @@ def send_homework(update: Update, context: CallbackContext):
             if homework.task_photo_id:
                 update.message.reply_text(text=text)
                 update.message.reply_photo(photo=homework.task_photo_id)
-            text = ""
-    else: 
-        update.message.reply_text(no_homework_yet_text)
 
 def ask_add_or_delete(update: Update, context: CallbackContext):
     update.message.reply_text(text=add_or_delete_text, reply_markup=make_keyboard_add_or_delete_homework())

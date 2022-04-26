@@ -33,7 +33,8 @@ Return to /start
 """
     context.bot.send_message(
         chat_id=u.user_id,
-        text=user_message,
+        text=message
+        # text=user_message,
     )
 
     admin_message = f"⚠️⚠️⚠️ for {u.tg_str}:\n{message}"[:4090]

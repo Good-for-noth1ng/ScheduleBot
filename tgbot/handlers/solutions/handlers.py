@@ -17,13 +17,15 @@ from tgbot.handlers.solutions.static_text import (
     nothing_to_delete_text,
     number_requested_text,
     cancel_delete_text,
+    which_solution_text,
 
     ADD_SLTN_BTN,
     DLT_SLTN_BTN,
     CNCL_DLT_SLTN_BTN,
 )
-from tgbot.handlers.solutions.keyboards import make_keyboard_add_or_delete_solution, make_keyboard_to_delete_solution
+from tgbot.handlers.solutions.keyboards import make_keyboard_add_or_delete_solution, make_keyboard_to_choose_or_delete
 from tgbot.handlers.solutions.conversation_state import (
+    SEND_SOLUTION_STATE,
     ADD_OR_DLT_SLTN_STATE,
     ADD_SLTN_NM_STATE,
     ADD_SLTN_TSK_STATE,
@@ -31,24 +33,22 @@ from tgbot.handlers.solutions.conversation_state import (
 )
 from dtb.settings import MEDIA_ROOT
 
-def send_solution(update: Update, context: CallbackContext):
-    solutions = Solution.objects.all()
-    if solutions:
-        for solution in solutions:
-            text = ""
-            text += f"{solution.name}\n"
-            if solution.text:
-                text += f"{solution.text}"
-                update.message.reply_text(text=text)
-            elif solution.file_field:
-                update.message.reply_text(text=text)
-                update.message.reply_document(document=solution.file_field)
-            elif solution.photo_id:
-                update.message.reply_text(text=text)
-                update.message.reply_photo(photo=solution.photo_id)
-    else: 
+def ask_which_solution(update: Update, context: CallbackContext):
+    solution_num = Solution.get_num_of_solutions()
+    if solution_num > 0:
+        update.message.reply_text(text=which_solution_text)
+        text = Solution.make_string_for_choosing_solution()
+        update.message.reply_text(text=text, reply_markup=make_keyboard_to_choose_or_delete(link_list_lenght=solution_num))
+        return SEND_SOLUTION_STATE
+    else:
         update.message.reply_text(no_solution_yet_text)
+        return ConversationHandler.END
 
+def send_solution(update: Update, context: CallbackContext):
+    chosed_solution_index = int(update.message.text) - 1
+    Solution.sending_chosed_solution(index=chosed_solution_index, update=update)
+    return ConversationHandler.END
+    
 def ask_add_or_delete(update: Update, context: CallbackContext):
     update.message.reply_text(text=add_or_delete_text, reply_markup=make_keyboard_add_or_delete_solution())
     return ADD_OR_DLT_SLTN_STATE
@@ -58,14 +58,11 @@ def start_add(update: Update, context: CallbackContext):
     return ADD_SLTN_NM_STATE
 
 def start_delete(update: Update, context: CallbackContext):
-    solutions = Solution.objects.all()
-    text = ""
-    if solutions:
+    solution_num = Solution.objects.count()
+    if solution_num > 0:
         update.message.reply_text(text=choose_solution_to_delete_text)
-        for i in range(0, len(solutions)):            
-            text += f"<--------{i + 1}-------->\n"
-            text += f"{solutions[i].name}\n"
-        update.message.reply_text(text=text, reply_markup=make_keyboard_to_delete_solution(len(solutions)))
+        text = Solution.make_string_for_choosing_solution()
+        update.message.reply_text(text=text, reply_markup=make_keyboard_to_choose_or_delete(solution_num))
         return DLT_SLTN_STATE
     else: 
         update.message.reply_text(nothing_to_delete_text)
@@ -92,15 +89,19 @@ def add_task_text(update: Update, context: CallbackContext):
 
 def add_task_file(update: Update, context: CallbackContext):
     name = context.user_data["solution_name"]
-    document = update.message.document
-    download_path = os.path.join(MEDIA_ROOT, document.file_name)
-    task = document.get_file().download(custom_path=download_path)     
-    solution = Solution(name=name)
-    solution.file_field = task
+    file_id = update.message.document.file_id
+    solution = Solution(name=name,file_id=file_id)
     solution.save()
     update.message.reply_text(solution_is_added_text)
     context.user_data.clear()
     return ConversationHandler.END
+    #Code for saving file in local dir
+    # document = update.message.document
+    # download_path = os.path.join(MEDIA_ROOT, document.file_name)
+    # task = document.get_file().download(custom_path=download_path)     
+    # solution = Solution(name=name)
+    # solution.file_field = task
+    # solution.save()
 
 def add_task_file_as_photo(update: Update, context: CallbackContext):
     name = context.user_data["solution_name"]
@@ -112,9 +113,8 @@ def add_task_file_as_photo(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 def delete(update: Update, context: CallbackContext):
-    solution_to_delete_index = int(update.message.text) - 1     
-    solutions = Solution.objects.all()
-    solutions[solution_to_delete_index].delete()
+    solution_to_delete_index = int(update.message.text) - 1
+    Solution.deleting_solution(index=solution_to_delete_index)     
     update.message.reply_text(text=successful_del_text, reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
 

@@ -71,14 +71,17 @@ from tgbot.handlers.requirements.conversation_state import (
 from tgbot.handlers.homework import handlers as homework_handlers
 from tgbot.handlers.homework.static_text import DELETE_HMWRK_BUTTON, ADD_HMWRK_BUTTON, CANCEL_DELETE_HMWRK_BUTTON
 from tgbot.handlers.homework.conversation_state import (
+    SEND_HOMEWORK_STATE,
     ADD_HMWRK_NM_STATE,
     ADD_HMWRK_TSK_STATE,
     ADD_OR_DLT_STATE,
     DLT_HMWRK_STATE
 )
+
 from tgbot.handlers.solutions import handlers as solution_handlers
 from tgbot.handlers.solutions.static_text import DLT_SLTN_BTN, ADD_SLTN_BTN, CNCL_DLT_SLTN_BTN
 from tgbot.handlers.solutions.conversation_state import (
+    SEND_SOLUTION_STATE,
     ADD_OR_DLT_SLTN_STATE,
     ADD_SLTN_NM_STATE,
     ADD_SLTN_TSK_STATE,
@@ -245,7 +248,21 @@ def setup_dispatcher(dp):
 
     #send homework list
     dp.add_handler(CommandHandler("homework", homework_handlers.send_homework))
-    
+    dp.add_handler(ConversationHandler(
+        entry_points=[
+            CommandHandler("homework", homework_handlers.ask_which_homework)
+        ], 
+        states={
+            SEND_HOMEWORK_STATE: [
+                MessageHandler(Filters.regex(r'^\d*$'), homework_handlers.send_homework),
+                MessageHandler(Filters.text(CANCEL_DELETE_HMWRK_BUTTON), homework_handlers.cancel_delete),
+                MessageHandler(Filters.text, homework_handlers.number_requested),
+            ]
+        }, 
+        fallbacks=[
+            MessageHandler(Filters.command, homework_handlers.stop_editing)
+        ]
+    ))
     #edit homework
     dp.add_handler(ConversationHandler(
         entry_points=[
@@ -275,7 +292,21 @@ def setup_dispatcher(dp):
         ]
     ))
     #send solution
-    dp.add_handler(CommandHandler("solution", solution_handlers.send_solution))
+    dp.add_handler(ConversationHandler(
+        entry_points=[
+            CommandHandler("solution", solution_handlers.ask_which_solution)
+        ], 
+        states={
+            SEND_SOLUTION_STATE: [
+                MessageHandler(Filters.regex(r'^\d*$'), solution_handlers.send_solution),
+                MessageHandler(Filters.text(CANCEL_DELETE_HMWRK_BUTTON), solution_handlers.cancel_delete),
+                MessageHandler(Filters.text, solution_handlers.number_requested),
+            ]
+        }, 
+        fallbacks=[
+            MessageHandler(Filters.command, solution_handlers.stop_editing)
+        ]
+    ))
     #edit solutions
     dp.add_handler(ConversationHandler(
         entry_points=[
@@ -336,18 +367,18 @@ def run_pooling():
     dp = setup_dispatcher(dp)
 
     #Run with webhook
-    updater.start_webhook(
-        listen="0.0.0.0", 
-        port=PORT, 
-        url_path=TELEGRAM_TOKEN,
-        webhook_url='https://' + HEROKU_APP_NAME +'.herokuapp.com/' + TELEGRAM_TOKEN
-    )
+    # updater.start_webhook(
+    #     listen="0.0.0.0", 
+    #     port=PORT, 
+    #     url_path=TELEGRAM_TOKEN,
+    #     webhook_url='https://' + HEROKU_APP_NAME +'.herokuapp.com/' + TELEGRAM_TOKEN
+    # )
     
     #Run in pooling mode
-    # bot_info = Bot(TELEGRAM_TOKEN).get_me()
-    # bot_link = f"https://t.me/" + bot_info["username"]
-    # print(f"Pooling of '{bot_link}' started")
-    # updater.start_polling()
+    bot_info = Bot(TELEGRAM_TOKEN).get_me()
+    bot_link = f"https://t.me/" + bot_info["username"]
+    print(f"Pooling of '{bot_link}' started")
+    updater.start_polling()
 
     updater.idle()
 

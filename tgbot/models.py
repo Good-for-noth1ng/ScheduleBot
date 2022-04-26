@@ -29,7 +29,7 @@ class Schedule(models.Model):
         fifth = '15:30'
         sixth = '17:10'
         seventh = '18:50'
-        eighth = '20:30'
+        eighth = '+'
 
     day = models.CharField(max_length=2, choices=Day.choices)
     time = models.CharField(max_length=5, choices=Time.choices, default="")
@@ -38,30 +38,27 @@ class Schedule(models.Model):
     teacher = models.CharField(max_length=200, default="")
     isOnline = models.CharField(max_length=200, default="")
     
-    # @classmethod
-    # def update_schedule(cls, day, time, lesson, teacher, group, isOnline):
-    #     schedule, created = cls.objects.update_or_create(
-    #         day=user_data["day"],
-    #         time=user_data["time"],
-    #         defaults={
-    #             'lesson': user_data["lesson"],
-    #             'teacher': user_data["teacher"],
-    #             'group': context.user_data['group'],
-    #             'isOnline': context.user_data['isOnline']
-    #         }
-    #     )
-    #     schedule.save()
+    @classmethod
+    def update_schedule(cls, context: CallbackContext):
+        schedule, created = cls.objects.update_or_create(
+            day=context.user_data["day"],
+            time=context.user_data["time"],
+            defaults={
+                'lesson': context.user_data["lesson"],
+                'teacher': context.user_data["teacher"],
+                'group': context.user_data['group'],
+                'isOnline': context.user_data['isOnline']
+            }
+        )
+        schedule.save()
 
-    # @classmethod
-    # def deleting_schedule(cls, user_data):
-    #     schedule = cls.objects.all().filter(day=user_data["day"], time=user_data["time"])
-    #     for sched in schedule:
-    #         if sched:
-    #             sched.delete()
+    @classmethod
+    def deleting_schedule(cls, context: CallbackContext):
+        schedule = cls.objects.all().filter(day=context.user_data["day"], time=context.user_data["time"])
+        for sched in schedule:
+            if sched:
+                sched.delete()
 
-    @property
-    def get_id(self):
-        return self.pk
 
 class Links(models.Model):
     url = models.URLField(max_length=200, default="")
@@ -74,23 +71,88 @@ class Books(models.Model):
 class Requirements(models.Model):
     name = models.CharField(max_length=200, default="")
     text = models.CharField(max_length=5000, default="")
-    photo_id = models.CharField(max_length=500, default="")
-    
+    photo_id = models.CharField(max_length=1000, default="")
+    file_id = models.CharField(max_length=1000, default="")
+
 class RequirementFile(models.Model):
     requirements = models.ForeignKey(Requirements, on_delete=models.CASCADE)
     file_field = models.FileField(default=None, null=True)
 
 class Homework(models.Model):
     name = models.CharField(max_length=200, default="")
-    task_doc = models.FileField(default=None, null=True)
+    task_file_id = models.CharField(max_length=1000, default="")
     task_text = models.CharField(max_length=5000, default="")
-    task_photo_id = models.CharField(max_length=500, default="")
+    task_photo_id = models.CharField(max_length=1000, default="")
 
+    @classmethod
+    def make_string_for_choosing_homework(cls):
+        text = ""
+        homeworks = cls.objects.all()
+        for i in range(0, len(homeworks)):
+            text += f"{i+1} - {homeworks[i].name}\n"
+        return text
+
+    @classmethod
+    def deleting_homework(cls, index):
+        homeworks = cls.objects.all()
+        homeworks[index].delete()
+
+    @classmethod
+    def sending_chosed_homewor(cls, index, update: Update):
+        text = ""
+        homeworks = cls.objects.all()
+        text += f"🧭 {homeworks[index].name}\n"
+        if homeworks[index].task_text:
+            text += f"{homeworks[index].task_text}"
+            update.message.reply_text(text=text)
+        elif homeworks[index].task_doc:
+            update.message.reply_text(text=text)
+            update.message.reply_document(document=homeworks[index].task_doc)
+        elif homeworks[index].task_photo_id:
+            update.message.reply_text(text=text)
+            update.message.reply_photo(photo=homeworks[index].task_photo_id)
+
+    @classmethod
+    def get_num_of_homework(cls):
+        return cls.objects.count()
+        
 class Solution(models.Model):
     name = models.CharField(max_length=200, default="")
-    file_field = models.FileField(default=None, null=True)
+    file_id = models.CharField(max_length=1000, default="")
     photo_id = models.CharField(max_length=500, default="")    
-    text = models.CharField(max_length=200, default="")
+    text = models.CharField(max_length=5000, default="")
+
+    @classmethod
+    def make_string_for_choosing_solution(cls):
+        text = ""
+        solutions = cls.objects.all()
+        for i in range(len(solutions)):
+            text += f"{i+1} - {solutions[i].name}\n"
+        return text
+
+    @classmethod
+    def deleting_solution(cls, index):
+        solutions = cls.objects.all()
+        solutions[index].delete()
+
+    @classmethod
+    def sending_chosed_solution(cls, index, update: Update):
+        text = ""
+        solutions = cls.objects.all()
+        text += f"🧭 {solutions[index].name}:\n"
+        if solutions[index].text:
+            text += f"🗺️ {solutions[index].text}\n"
+            update.message.reply_text(text=text)
+        elif solutions[index].file_id:
+            update.message.reply_text(text=text)
+            update.message.reply_document(document=solutions[index].file_id)
+        elif solutions[index].photo_id:
+            update.message.reply_text(text=text)
+            update.message.reply_photo(photo=solutions[index].photo_id)
+
+    @classmethod
+    def get_num_of_solutions(cls):
+        return cls.objects.count()
 
 class AdminUserManager(Manager):
     def get_queryset(self):

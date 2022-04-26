@@ -16,7 +16,7 @@ def make_keyboard_add_or_delete_solution()->ReplyKeyboardMarkup:
     buttons.append([KeyboardButton(DLT_SLTN_BTN)])
     return ReplyKeyboardMarkup(keyboard=buttons, one_time_keyboard=True)
 
-def make_keyboard_to_delete_solution(link_list_lenght)->ReplyKeyboardMarkup:
+def make_keyboard_to_choose_or_delete(link_list_lenght)->ReplyKeyboardMarkup:
     buttons = []
     for n in range(0, link_list_lenght):
         buttons.append(str(n+1))

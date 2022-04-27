@@ -11,7 +11,7 @@ from telegram.ext import (
     Updater, Dispatcher, Filters,
     CommandHandler, MessageHandler,
     CallbackQueryHandler, BaseFilter,
-    ConversationHandler
+    ConversationHandler, CallbackContext
 )
 
 from dtb.celery import app  # event processing in async mode
@@ -22,7 +22,6 @@ from tgbot.handlers.utils import files, error
 from tgbot.handlers.onboarding import handlers as onboarding_handlers
 
 from tgbot.handlers.schedule import handlers as schedule_handlers
-
 from tgbot.handlers.schedule.static_text import (
     DAYS_TO_CHOOSE, 
     DAYS_TO_EDIT,
@@ -41,23 +40,11 @@ from tgbot.handlers.schedule.conversation_states import (
     EDIT_TEACHER,
     EDIT_PLACE
 )
-from tgbot.handlers.links import handlers as link_handlers
-from tgbot.handlers.links.static_text import DELETE_LINK_BUTTON, ADD_BUTTON, CANCEL_DELETE_LINK_BUTTON
-from tgbot.handlers.links.conversation_state import (
-    ADD_NAME_STATE, 
-    ADD_LINK_STATE,
-    DELETE_STATE, 
-    ADD_OR_DELETE_STATE,
-)
 
-from tgbot.handlers.books import handlers as book_handlers
-from tgbot.handlers.books.static_text import DELETE_BOOK_BUTTON, ADD_BOOK_BUTTON, CANCEL_DELETE_BUTTON
-from tgbot.handlers.books.conversation_state import (
-    ADD_BOOK_NAME_STATE,
-    ADD_BOOK_LINK_STATE,
-    ADD_OR_DELETE_BOOK_STATE,
-    DELETE_BOOK_STATE
-)
+from tgbot.handlers.external import handlers as ext_handlers
+import tgbot.handlers.external.static_text as st
+import tgbot.handlers.external.conversation_state as cs
+
 
 from tgbot.handlers.requirements import handlers as requirement_handlers
 from tgbot.handlers.requirements.static_text import DELETE_RQMNT_BUTTON, ADD_RQMNT_BUTTON, CANCEL_DELETE_RQMNT_BUTTON
@@ -150,190 +137,173 @@ def setup_dispatcher(dp):
         ]
     ))
 
-    #send links list
-    dp.add_handler(
-        CommandHandler("links", link_handlers.send_links)
-    )
-
-    #edit links list
+    #send links or books
     dp.add_handler(ConversationHandler(
         entry_points=[
-            CommandHandler("editlinks", link_handlers.ask_add_or_delete),
+            CommandHandler("links", ext_handlers.ask_which_link),
+            CommandHandler("books", ext_handlers.ask_which_book)
         ], 
         states={
-            ADD_OR_DELETE_STATE: [
-                MessageHandler(Filters.text(ADD_BUTTON), link_handlers.start_add),
-                MessageHandler(Filters.text(DELETE_LINK_BUTTON), link_handlers.start_delete),               
-            ],
-            ADD_NAME_STATE: [
-                MessageHandler(Filters.text, link_handlers.add_name),
-            ],
-            ADD_LINK_STATE: [
-                MessageHandler(Filters.entity('url'), link_handlers.add_link),
-                MessageHandler(Filters.text, link_handlers.url_requested),
-            ],
-            DELETE_STATE: [
-                MessageHandler(Filters.regex(r'^\d*$'), link_handlers.delete),
-                MessageHandler(Filters.text(CANCEL_DELETE_LINK_BUTTON), link_handlers.cancel_delete),
-                MessageHandler(Filters.text, link_handlers.number_requested),
-            ],
+            cs.SEND_STATE: [
+                MessageHandler(Filters.regex(r'^\d*$'), ext_handlers.send),
+                MessageHandler(Filters.text(st.CANCEL_BUTTON), ext_handlers.cancel),
+                MessageHandler(Filters.text, ext_handlers.number_requested),
+            ]
         }, 
         fallbacks=[
-            MessageHandler(Filters.command, link_handlers.stop_editing)
+            MessageHandler(Filters.command, ext_handlers.stop)
         ]
     ))
 
-    #send book list
-    dp.add_handler(CommandHandler("books", book_handlers.send_books))
+    #edit links or books
+    dp.add_handler(ConversationHandler(
+        entry_points=[
+            CommandHandler("editbooks", ext_handlers.ask_add_or_delete_book),
+            CommandHandler("editlinks", ext_handlers.ask_add_or_delete_link), 
+        ], 
+        states={
+            cs.ADD_OR_DELETE_STATE: [
+                MessageHandler(Filters.text(st.ADD_BUTTON), ext_handlers.start_add),
+                MessageHandler(Filters.text(st.DELETE_BUTTON), ext_handlers.start_delete),               
+            ],
+            cs.ADD_NAME_STATE: [
+                MessageHandler(Filters.text, ext_handlers.add_name),
+            ],
+            cs.ADD_URL_STATE: [
+                MessageHandler(Filters.entity('url'), ext_handlers.add_link),
+                MessageHandler(Filters.text, ext_handlers.url_requested),
+            ],
+            cs.DELETE_STATE: [
+                MessageHandler(Filters.regex(r'^\d*$'), ext_handlers.delete),
+                MessageHandler(Filters.text(st.CANCEL_BUTTON), ext_handlers.cancel),
+                MessageHandler(Filters.text, ext_handlers.number_requested),
+            ],
+        }, 
+        fallbacks=[
+            MessageHandler(Filters.command, ext_handlers.stop)
+        ]
+    ))
+
+    # #send requirements list
+    # #it's list of teacher's requirements
+    # dp.add_handler(CommandHandler("requirements", requirement_handlers.send_requirements))
     
-    #edit book list
-    dp.add_handler(ConversationHandler(
-        entry_points=[
-            CommandHandler("editbooks", book_handlers.ask_add_or_delete),
-        ], 
-        states={
-            ADD_OR_DELETE_BOOK_STATE: [
-                MessageHandler(Filters.text(ADD_BOOK_BUTTON), book_handlers.start_add),
-                MessageHandler(Filters.text(DELETE_BOOK_BUTTON), book_handlers.start_delete),
-            ],
-            ADD_BOOK_NAME_STATE: [
-                MessageHandler(Filters.text, book_handlers.add_name),
-            ],
-            ADD_BOOK_LINK_STATE: [
-                MessageHandler(Filters.entity('url'), book_handlers.add_book_url),
-                MessageHandler(Filters.text, book_handlers.url_requested),
-            ],
-            DELETE_BOOK_STATE: [
-                MessageHandler(Filters.regex(r'^\d*$'), book_handlers.delete),
-                MessageHandler(Filters.text(CANCEL_DELETE_BUTTON), book_handlers.cancel_delete),
-                MessageHandler(Filters.text, book_handlers.number_requested),
-            ],
-        }, 
-        fallbacks=[
-            MessageHandler(Filters.command, book_handlers.stop_editing)
-        ]
-    ))
+    # #edit requirements list
+    # dp.add_handler(ConversationHandler(
+    #     entry_points=[
+    #         CommandHandler("editrequirements", requirement_handlers.ask_add_or_delete),
+    #     ], 
+    #     states={
+    #         ADD_OR_DELETE_REQUIRE_STATE: [
+    #             MessageHandler(Filters.text(ADD_RQMNT_BUTTON), requirement_handlers.start_add),
+    #             MessageHandler(Filters.text(DELETE_RQMNT_BUTTON), requirement_handlers.start_delete),
+    #         ],
+    #         ADD_REQUIR_NAME_STATE: [
+    #             MessageHandler(Filters.text, requirement_handlers.add_name),
+    #         ],
+    #         ADD_REQUIRE_STATE: [
+    #             MessageHandler(Filters.text, requirement_handlers.add_require_text),
+    #             MessageHandler(Filters.document, requirement_handlers.add_require_file),
+    #             MessageHandler(Filters.photo, requirement_handlers.add_require_photo_id)
+    #         ],
+    #         DELETE_REQUIRE_STATE: [
+    #             MessageHandler(Filters.regex(r'^\d*$'), requirement_handlers.delete),
+    #             MessageHandler(Filters.text(CANCEL_DELETE_RQMNT_BUTTON), requirement_handlers.cancel_delete),
+    #         ]
+    #     }, 
+    #     fallbacks=[
+    #         MessageHandler(Filters.command, requirement_handlers.stop_editing)
+    #     ]
+    # ))
 
-    #send requirements list
-    #it's list of teacher's requirements
-    dp.add_handler(CommandHandler("requirements", requirement_handlers.send_requirements))
-    
-    #edit requirements list
-    dp.add_handler(ConversationHandler(
-        entry_points=[
-            CommandHandler("editrequirements", requirement_handlers.ask_add_or_delete),
-        ], 
-        states={
-            ADD_OR_DELETE_REQUIRE_STATE: [
-                MessageHandler(Filters.text(ADD_RQMNT_BUTTON), requirement_handlers.start_add),
-                MessageHandler(Filters.text(DELETE_RQMNT_BUTTON), requirement_handlers.start_delete),
-            ],
-            ADD_REQUIR_NAME_STATE: [
-                MessageHandler(Filters.text, requirement_handlers.add_name),
-            ],
-            ADD_REQUIRE_STATE: [
-                MessageHandler(Filters.text, requirement_handlers.add_require_text),
-                MessageHandler(Filters.document, requirement_handlers.add_require_file),
-                MessageHandler(Filters.photo, requirement_handlers.add_require_photo_id)
-            ],
-            DELETE_REQUIRE_STATE: [
-                MessageHandler(Filters.regex(r'^\d*$'), requirement_handlers.delete),
-                MessageHandler(Filters.text(CANCEL_DELETE_RQMNT_BUTTON), requirement_handlers.cancel_delete),
-            ]
-        }, 
-        fallbacks=[
-            MessageHandler(Filters.command, requirement_handlers.stop_editing)
-        ]
-    ))
-
-    #send homework list
-    dp.add_handler(ConversationHandler(
-        entry_points=[
-            CommandHandler("homework", homework_handlers.ask_which_homework)
-        ], 
-        states={
-            SEND_HOMEWORK_STATE: [
-                MessageHandler(Filters.regex(r'^\d*$'), homework_handlers.send_homework),
-                MessageHandler(Filters.text(CANCEL_DELETE_HMWRK_BUTTON), homework_handlers.cancel_delete),
-                MessageHandler(Filters.text, homework_handlers.number_requested),
-            ]
-        }, 
-        fallbacks=[
-            MessageHandler(Filters.command, homework_handlers.stop_editing)
-        ]
-    ))
-    #edit homework
-    dp.add_handler(ConversationHandler(
-        entry_points=[
-            CommandHandler("edithomework", homework_handlers.ask_add_or_delete),
-        ], 
-        states={
-            ADD_OR_DLT_STATE: [
-                MessageHandler(Filters.text(ADD_HMWRK_BUTTON), homework_handlers.start_add),
-                MessageHandler(Filters.text(DELETE_HMWRK_BUTTON), homework_handlers.start_delete),
-            ],
-            ADD_HMWRK_NM_STATE:[
-                MessageHandler(Filters.text, homework_handlers.add_name),
-            ],
-            ADD_HMWRK_TSK_STATE: [
-                MessageHandler(Filters.text, homework_handlers.add_task_text),
-                MessageHandler(Filters.document, homework_handlers.add_task_file),
-                MessageHandler(Filters.photo, homework_handlers.add_task_file_as_photo),
-            ],
-            DLT_HMWRK_STATE: [
-                MessageHandler(Filters.regex(r'^\d*$'), homework_handlers.delete),
-                MessageHandler(Filters.text(CANCEL_DELETE_HMWRK_BUTTON), homework_handlers.cancel_delete),
-                MessageHandler(Filters.text, homework_handlers.number_requested),
-            ]
-        }, 
-        fallbacks=[
-            MessageHandler(Filters.command, homework_handlers.stop_editing)
-        ]
-    ))
-    #send solution
-    dp.add_handler(ConversationHandler(
-        entry_points=[
-            CommandHandler("solution", solution_handlers.ask_which_solution)
-        ], 
-        states={
-            SEND_SOLUTION_STATE: [
-                MessageHandler(Filters.regex(r'^\d*$'), solution_handlers.send_solution),
-                MessageHandler(Filters.text(CANCEL_DELETE_HMWRK_BUTTON), solution_handlers.cancel_delete),
-                MessageHandler(Filters.text, solution_handlers.number_requested),
-            ]
-        }, 
-        fallbacks=[
-            MessageHandler(Filters.command, solution_handlers.stop_editing)
-        ]
-    ))
-    #edit solutions
-    dp.add_handler(ConversationHandler(
-        entry_points=[
-            CommandHandler("editsolution", solution_handlers.ask_add_or_delete),
-        ], 
-        states={
-            ADD_OR_DLT_SLTN_STATE: [
-                MessageHandler(Filters.text(ADD_SLTN_BTN), solution_handlers.start_add),
-                MessageHandler(Filters.text(DLT_SLTN_BTN), solution_handlers.start_delete),
-            ],
-            ADD_SLTN_NM_STATE: [
-                MessageHandler(Filters.text, solution_handlers.add_name),
-            ],
-            ADD_SLTN_TSK_STATE: [
-                MessageHandler(Filters.text, solution_handlers.add_task_text),
-                MessageHandler(Filters.document, solution_handlers.add_task_file),
-                MessageHandler(Filters.photo, solution_handlers.add_task_file_as_photo),
-            ],
-            DLT_SLTN_STATE: [
-                MessageHandler(Filters.regex(r'^\d*$'), solution_handlers.delete),
-                MessageHandler(Filters.text(CANCEL_DELETE_HMWRK_BUTTON), solution_handlers.cancel_delete),
-                MessageHandler(Filters.text, solution_handlers.number_requested),
-            ]
-        }, 
-        fallbacks=[
-            MessageHandler(Filters.command, solution_handlers.stop_editing)
-        ]
-    ))
+    # #send homework list
+    # dp.add_handler(ConversationHandler(
+    #     entry_points=[
+    #         CommandHandler("homework", homework_handlers.ask_which_homework)
+    #     ], 
+    #     states={
+    #         SEND_HOMEWORK_STATE: [
+    #             MessageHandler(Filters.regex(r'^\d*$'), homework_handlers.send_homework),
+    #             MessageHandler(Filters.text(CANCEL_DELETE_HMWRK_BUTTON), homework_handlers.cancel_delete),
+    #             MessageHandler(Filters.text, homework_handlers.number_requested),
+    #         ]
+    #     }, 
+    #     fallbacks=[
+    #         MessageHandler(Filters.command, homework_handlers.stop_editing)
+    #     ]
+    # ))
+    # #edit homework
+    # dp.add_handler(ConversationHandler(
+    #     entry_points=[
+    #         CommandHandler("edithomework", homework_handlers.ask_add_or_delete),
+    #     ], 
+    #     states={
+    #         ADD_OR_DLT_STATE: [
+    #             MessageHandler(Filters.text(ADD_HMWRK_BUTTON), homework_handlers.start_add),
+    #             MessageHandler(Filters.text(DELETE_HMWRK_BUTTON), homework_handlers.start_delete),
+    #         ],
+    #         ADD_HMWRK_NM_STATE:[
+    #             MessageHandler(Filters.text, homework_handlers.add_name),
+    #         ],
+    #         ADD_HMWRK_TSK_STATE: [
+    #             MessageHandler(Filters.text, homework_handlers.add_task_text),
+    #             MessageHandler(Filters.document, homework_handlers.add_task_file),
+    #             MessageHandler(Filters.photo, homework_handlers.add_task_file_as_photo),
+    #         ],
+    #         DLT_HMWRK_STATE: [
+    #             MessageHandler(Filters.regex(r'^\d*$'), homework_handlers.delete),
+    #             MessageHandler(Filters.text(CANCEL_DELETE_HMWRK_BUTTON), homework_handlers.cancel_delete),
+    #             MessageHandler(Filters.text, homework_handlers.number_requested),
+    #         ]
+    #     }, 
+    #     fallbacks=[
+    #         MessageHandler(Filters.command, homework_handlers.stop_editing)
+    #     ]
+    # ))
+    # #send solution
+    # dp.add_handler(ConversationHandler(
+    #     entry_points=[
+    #         CommandHandler("solution", solution_handlers.ask_which_solution)
+    #     ], 
+    #     states={
+    #         SEND_SOLUTION_STATE: [
+    #             MessageHandler(Filters.regex(r'^\d*$'), solution_handlers.send_solution),
+    #             MessageHandler(Filters.text(CANCEL_DELETE_HMWRK_BUTTON), solution_handlers.cancel_delete),
+    #             MessageHandler(Filters.text, solution_handlers.number_requested),
+    #         ]
+    #     }, 
+    #     fallbacks=[
+    #         MessageHandler(Filters.command, solution_handlers.stop_editing)
+    #     ]
+    # ))
+    # #edit solutions
+    # dp.add_handler(ConversationHandler(
+    #     entry_points=[
+    #         CommandHandler("editsolution", solution_handlers.ask_add_or_delete),
+    #     ], 
+    #     states={
+    #         ADD_OR_DLT_SLTN_STATE: [
+    #             MessageHandler(Filters.text(ADD_SLTN_BTN), solution_handlers.start_add),
+    #             MessageHandler(Filters.text(DLT_SLTN_BTN), solution_handlers.start_delete),
+    #         ],
+    #         ADD_SLTN_NM_STATE: [
+    #             MessageHandler(Filters.text, solution_handlers.add_name),
+    #         ],
+    #         ADD_SLTN_TSK_STATE: [
+    #             MessageHandler(Filters.text, solution_handlers.add_task_text),
+    #             MessageHandler(Filters.document, solution_handlers.add_task_file),
+    #             MessageHandler(Filters.photo, solution_handlers.add_task_file_as_photo),
+    #         ],
+    #         DLT_SLTN_STATE: [
+    #             MessageHandler(Filters.regex(r'^\d*$'), solution_handlers.delete),
+    #             MessageHandler(Filters.text(CANCEL_DELETE_HMWRK_BUTTON), solution_handlers.cancel_delete),
+    #             MessageHandler(Filters.text, solution_handlers.number_requested),
+    #         ]
+    #     }, 
+    #     fallbacks=[
+    #         MessageHandler(Filters.command, solution_handlers.stop_editing)
+    #     ]
+    # ))
     
     # files
     dp.add_handler(MessageHandler(

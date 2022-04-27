@@ -67,18 +67,6 @@ def start_delete(update: Update, context: CallbackContext):
     else:
         update.message.reply_text(text=nothing_to_delete_text)
         return ConversationHandler.END
-    # homeworks = Homework.objects.all()
-    # text = ""
-    # if homeworks:
-    #     update.message.reply_text(text=choose_homework_to_delete_text)
-    #     for i in range(0, len(homeworks)):            
-    #         text += f"<--------{i + 1}-------->\n"
-    #         text += f"{homeworks[i].name}\n"
-    #     update.message.reply_text(text=text, reply_markup=make_keyboard_to_delete_homework(len(homeworks)))
-    #     return DLT_HMWRK_STATE
-    # else: 
-    #     update.message.reply_text(nothing_to_delete_text)
-    #     return ConversationHandler.END
 
 def add_name(update: Update, context: CallbackContext):
     context.user_data["homework_name"] = update.message.text

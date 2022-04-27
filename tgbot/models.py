@@ -59,15 +59,144 @@ class Schedule(models.Model):
             if sched:
                 sched.delete()
 
-
-class Links(models.Model):
-    url = models.URLField(max_length=200, default="")
-    lesson = models.CharField(max_length=200, default="")
-
-class Books(models.Model):
+#user sends url
+#url to google disk with large files or url to website 
+class ExternalResource(models.Model):
     name = models.CharField(max_length=200, default="")
     url = models.URLField(max_length=500, default="")
+    is_link_to_book = models.BooleanField(default=False)
+    is_link_to_command = models.BooleanField(default=False)
 
+    @classmethod
+    def get_books(cls):
+        return cls.objects.all().filter(is_link_to_book=True)
+
+    @classmethod
+    def get_urls(cls):
+        return cls.objects.all().filter(is_link_to_command=True)
+
+    @classmethod
+    def get_books_num(cls):
+        return cls.objects.all().filter(is_link_to_book=True).count()
+
+    @classmethod
+    def get_urls_num(cls):
+        return cls.objects.all().filter(is_link_to_command=True).count()
+    
+    @classmethod
+    def make_string_for_choosing(cls, is_link_to_book=False, is_link_to_command=False):
+        if is_link_to_book:
+            ext_res = cls.objects.all().filter(is_link_to_book=True)
+        elif is_link_to_command:
+            ext_res = cls.objects.all().filter(is_link_to_command=True)
+        text = ""
+        for i in range(0, len(ext_res)):
+            text += f"{i+1} - {ext_res[i].name}\n"
+        return text
+    
+    @classmethod
+    def deleting_by_index(cls, index, is_link_to_book=False, is_link_to_command=False):
+        if is_link_to_book:
+            ext_res = cls.objects.all().filter(is_link_to_book=True)
+        elif is_link_to_command:
+            ext_res = cls.objects.all().filter(is_link_to_command=True)
+        ext_res[index].delete()
+    
+    @classmethod
+    def sending_chosen_ext_res(cls, index, update: Update, is_link_to_book=False, is_link_to_command=False):
+        if is_link_to_book:
+            ext_res = cls.objects.all().filter(is_link_to_book=True)
+        elif is_link_to_command:
+            ext_res = cls.objects.all().filter(is_link_to_command=True)
+        
+        text = f"🔍 {ext_res[index].name} 🔗 {ext_res[index].url}"
+        update.message.reply_text(text=text)
+    
+#user sends photo, file or text. This set can be requirement, homework or soluton
+#telegram will store these photos and files, db will store the text 
+class InternalResource(models.Model):
+    name = models.CharField(max_length=2000, default="")
+    file_id = models.CharField(max_length=1000, default="")
+    photo_id = models.CharField(max_length=1000, default="")    
+    text = models.CharField(max_length=5000, default="")
+    is_requirement = models.BooleanField(default=False)
+    is_homework = models.BooleanField(default=False)
+    is_solution = models.BooleanField(default=False)
+
+    @classmethod
+    def get_requirements(cls):
+        return cls.objects.all().filter(is_requirement=True)
+    
+    @classmethod
+    def get_requirements(cls):
+        return cls.objects.all().filter(is_homework=True)
+    
+    @classmethod
+    def get_requirements(cls):
+        return cls.objects.all().filter(is_solution=True)
+
+    @classmethod
+    def get_num_of_requirements(cls):
+        return cls.objects.all().filter(is_requirement=True).count()
+    
+    @classmethod
+    def get_num_of_homeworks(cls):
+        return cls.objects.all().filter(is_homework=True).count()
+    
+    @classmethod
+    def get_num_of_solutions(cls):
+        return cls.objects.all().filter(is_solution=True).count()
+    
+    @classmethod
+    def make_string_for_choosing(cls, is_requirement=False, is_homework=False, is_solution=False):
+        if is_requirement:
+            int_res = cls.objects.all().filter(is_requirement=True)
+        elif is_homework:
+            int_res = cls.objects.all().filter(is_homework=True)
+        elif is_solution:
+            int_res = cls.objects.all().filter(is_solution=True)
+        text = ""
+        for i in range(0, len(int_res)):
+            text += f"{i+1} - {int_res[i].name}\n"
+        return text
+    
+    @classmethod
+    def deleting_requirements_by_index(cls, index):
+        int_res = cls.objects.all().filter(is_requirement=True)
+        int_res[index].delete()
+    
+    @classmethod
+    def deleting_homework_by_index(cls, index):
+        int_res = cls.objects.all().filter(is_homework=True)
+        int_res[index].delete()
+    
+    @classmethod
+    def deleting_solutions_by_index(cls, index):
+        int_res = cls.objects.all().filter(is_solution=True)
+        int_res[index].delete()
+    
+    @classmethod
+    def sending_chosen_int_res(cls, index, update: Update, is_requirement=False, is_homework=False, is_solution=False):
+        if is_requirement:
+            int_res = cls.objects.all().filter(is_requirement=True)
+        elif is_homework:
+            int_res = cls.objects.all().filter(is_homework=True)
+        elif is_solution:
+            int_res = cls.objects.all().filter(is_solution=True)
+        
+        text = f"🧭 {int_res[index].name}\n"
+        
+        if int_res[index].text:
+            text += f"{int_res[index].text}"
+            update.message.reply_text(text=text)
+        elif int_res[index].file_id:
+            update.message.reply_text(text=text)
+            update.message.reply_document(document=int_res[index].file_id)
+        elif int_res[index].photo_id:
+            update.message.reply_text(text=text)
+            update.message.reply_photo(photo=int_res[index].photo_id)
+
+###############################
 class Requirements(models.Model):
     name = models.CharField(max_length=200, default="")
     text = models.CharField(max_length=5000, default="")
@@ -77,6 +206,7 @@ class Requirements(models.Model):
 class RequirementFile(models.Model):
     requirements = models.ForeignKey(Requirements, on_delete=models.CASCADE)
     file_field = models.FileField(default=None, null=True)
+##############################
 
 class Homework(models.Model):
     name = models.CharField(max_length=200, default="")

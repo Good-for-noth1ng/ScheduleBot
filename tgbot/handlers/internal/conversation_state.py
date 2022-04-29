@@ -1,0 +1,5 @@
+SEND_STATE="sendstate"
+ADD_OR_DELETE_STATE = "addordeletestate"
+ADD_NAME_STATE = "addnamestate"
+ADD_TASK_STATE = "addtaskstate"
+DELETE_STATE = "deletestate"

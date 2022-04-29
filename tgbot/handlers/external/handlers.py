@@ -47,6 +47,7 @@ def send(update: Update, context: CallbackContext):
         ExternalResource.sending_chosen_ext_res(index=chosen_index, update=update, is_link_to_book=True)
     elif context.user_data["ext_type"] == "link":
         ExternalResource.sending_chosen_ext_res(index=chosen_index, update=update, is_link_to_command=True)
+    context.user_data.clear()
     return ConversationHandler.END
 
 def ask_add_or_delete_book(update: Update, context: CallbackContext):
@@ -82,6 +83,7 @@ def start_delete(update: Update, context: CallbackContext):
         return cs.DELETE_STATE
     else: 
         update.message.reply_text(text=st.nothing_to_delete_text)
+        context.user_data.clear()
         return ConversationHandler.END
 
 def add_name(update: Update, context: CallbackContext):
@@ -120,11 +122,16 @@ def delete(update: Update, context: CallbackContext):
     elif context.user_data["ext_type"] == "link":
         ExternalResource.deleting_by_index(index=deletion_index, is_link_to_command=True)
     update.message.reply_text(text=st.successful_del_text, reply_markup=ReplyKeyboardRemove())
+    context.user_data.clear()
     return ConversationHandler.END
 
-def number_requested(update: Update, context: CallbackContext):
+def number_requested_to_delete(update: Update, context: CallbackContext):
     update.message.reply_text(text=st.number_requested_text)
-    start_delete(update=update, context=context)
+    return cs.DELETE_STATE
+
+def number_requested_to_choose(update: Update, context: CallbackContext):
+    update.message.reply_text(text=st.number_requested_text)
+    return cs.SEND_STATE
 
 def stop(update: Update, context: CallbackContext):
     context.user_data.clear()

@@ -45,35 +45,10 @@ from tgbot.handlers.external import handlers as ext_handlers
 import tgbot.handlers.external.static_text as st
 import tgbot.handlers.external.conversation_state as cs
 
+from tgbot.handlers.internal import handlers as int_handlers
+import tgbot.handlers.internal.conversation_state as int_cs
+import tgbot.handlers.internal.static_text as int_st
 
-from tgbot.handlers.requirements import handlers as requirement_handlers
-from tgbot.handlers.requirements.static_text import DELETE_RQMNT_BUTTON, ADD_RQMNT_BUTTON, CANCEL_DELETE_RQMNT_BUTTON
-from tgbot.handlers.requirements.conversation_state import (
-    ADD_OR_DELETE_REQUIRE_STATE,
-    ADD_REQUIR_NAME_STATE,
-    ADD_REQUIRE_STATE,
-    DELETE_REQUIRE_STATE
-)
-
-from tgbot.handlers.homework import handlers as homework_handlers
-from tgbot.handlers.homework.static_text import DELETE_HMWRK_BUTTON, ADD_HMWRK_BUTTON, CANCEL_DELETE_HMWRK_BUTTON
-from tgbot.handlers.homework.conversation_state import (
-    SEND_HOMEWORK_STATE,
-    ADD_HMWRK_NM_STATE,
-    ADD_HMWRK_TSK_STATE,
-    ADD_OR_DLT_STATE,
-    DLT_HMWRK_STATE
-)
-
-from tgbot.handlers.solutions import handlers as solution_handlers
-from tgbot.handlers.solutions.static_text import DLT_SLTN_BTN, ADD_SLTN_BTN, CNCL_DLT_SLTN_BTN
-from tgbot.handlers.solutions.conversation_state import (
-    SEND_SOLUTION_STATE,
-    ADD_OR_DLT_SLTN_STATE,
-    ADD_SLTN_NM_STATE,
-    ADD_SLTN_TSK_STATE,
-    DLT_SLTN_STATE
-)
 def setup_dispatcher(dp):
     # 
     # Adding handlers for events from Telegram
@@ -147,7 +122,7 @@ def setup_dispatcher(dp):
             cs.SEND_STATE: [
                 MessageHandler(Filters.regex(r'^\d*$'), ext_handlers.send),
                 MessageHandler(Filters.text(st.CANCEL_BUTTON), ext_handlers.cancel),
-                MessageHandler(Filters.text, ext_handlers.number_requested),
+                MessageHandler(Filters.text, ext_handlers.number_requested_to_choose),
             ]
         }, 
         fallbacks=[
@@ -176,7 +151,7 @@ def setup_dispatcher(dp):
             cs.DELETE_STATE: [
                 MessageHandler(Filters.regex(r'^\d*$'), ext_handlers.delete),
                 MessageHandler(Filters.text(st.CANCEL_BUTTON), ext_handlers.cancel),
-                MessageHandler(Filters.text, ext_handlers.number_requested),
+                MessageHandler(Filters.text, ext_handlers.number_requested_to_delete),
             ],
         }, 
         fallbacks=[
@@ -184,126 +159,55 @@ def setup_dispatcher(dp):
         ]
     ))
 
-    # #send requirements list
-    # #it's list of teacher's requirements
-    # dp.add_handler(CommandHandler("requirements", requirement_handlers.send_requirements))
+    #send homework, requirements or solutions
+    dp.add_handler(ConversationHandler(
+        entry_points=[
+            CommandHandler("homework", int_handlers.ask_which_homework),
+            CommandHandler("solution", int_handlers.ask_which_solution),
+            CommandHandler("requirements", int_handlers.ask_which_requirement)
+        ], 
+        states={
+            int_cs.SEND_STATE: [
+                MessageHandler(Filters.regex(r'^\d*$'), int_handlers.send),
+                MessageHandler(Filters.text(int_st.CANCEL_BUTTON), int_handlers.cancel),
+                MessageHandler(Filters.text, int_handlers.number_requested_to_choose),
+            ]
+        }, 
+        fallbacks=[
+            MessageHandler(Filters.command, int_handlers.stop)
+        ]
+    ))
     
-    # #edit requirements list
-    # dp.add_handler(ConversationHandler(
-    #     entry_points=[
-    #         CommandHandler("editrequirements", requirement_handlers.ask_add_or_delete),
-    #     ], 
-    #     states={
-    #         ADD_OR_DELETE_REQUIRE_STATE: [
-    #             MessageHandler(Filters.text(ADD_RQMNT_BUTTON), requirement_handlers.start_add),
-    #             MessageHandler(Filters.text(DELETE_RQMNT_BUTTON), requirement_handlers.start_delete),
-    #         ],
-    #         ADD_REQUIR_NAME_STATE: [
-    #             MessageHandler(Filters.text, requirement_handlers.add_name),
-    #         ],
-    #         ADD_REQUIRE_STATE: [
-    #             MessageHandler(Filters.text, requirement_handlers.add_require_text),
-    #             MessageHandler(Filters.document, requirement_handlers.add_require_file),
-    #             MessageHandler(Filters.photo, requirement_handlers.add_require_photo_id)
-    #         ],
-    #         DELETE_REQUIRE_STATE: [
-    #             MessageHandler(Filters.regex(r'^\d*$'), requirement_handlers.delete),
-    #             MessageHandler(Filters.text(CANCEL_DELETE_RQMNT_BUTTON), requirement_handlers.cancel_delete),
-    #         ]
-    #     }, 
-    #     fallbacks=[
-    #         MessageHandler(Filters.command, requirement_handlers.stop_editing)
-    #     ]
-    # ))
-
-    # #send homework list
-    # dp.add_handler(ConversationHandler(
-    #     entry_points=[
-    #         CommandHandler("homework", homework_handlers.ask_which_homework)
-    #     ], 
-    #     states={
-    #         SEND_HOMEWORK_STATE: [
-    #             MessageHandler(Filters.regex(r'^\d*$'), homework_handlers.send_homework),
-    #             MessageHandler(Filters.text(CANCEL_DELETE_HMWRK_BUTTON), homework_handlers.cancel_delete),
-    #             MessageHandler(Filters.text, homework_handlers.number_requested),
-    #         ]
-    #     }, 
-    #     fallbacks=[
-    #         MessageHandler(Filters.command, homework_handlers.stop_editing)
-    #     ]
-    # ))
-    # #edit homework
-    # dp.add_handler(ConversationHandler(
-    #     entry_points=[
-    #         CommandHandler("edithomework", homework_handlers.ask_add_or_delete),
-    #     ], 
-    #     states={
-    #         ADD_OR_DLT_STATE: [
-    #             MessageHandler(Filters.text(ADD_HMWRK_BUTTON), homework_handlers.start_add),
-    #             MessageHandler(Filters.text(DELETE_HMWRK_BUTTON), homework_handlers.start_delete),
-    #         ],
-    #         ADD_HMWRK_NM_STATE:[
-    #             MessageHandler(Filters.text, homework_handlers.add_name),
-    #         ],
-    #         ADD_HMWRK_TSK_STATE: [
-    #             MessageHandler(Filters.text, homework_handlers.add_task_text),
-    #             MessageHandler(Filters.document, homework_handlers.add_task_file),
-    #             MessageHandler(Filters.photo, homework_handlers.add_task_file_as_photo),
-    #         ],
-    #         DLT_HMWRK_STATE: [
-    #             MessageHandler(Filters.regex(r'^\d*$'), homework_handlers.delete),
-    #             MessageHandler(Filters.text(CANCEL_DELETE_HMWRK_BUTTON), homework_handlers.cancel_delete),
-    #             MessageHandler(Filters.text, homework_handlers.number_requested),
-    #         ]
-    #     }, 
-    #     fallbacks=[
-    #         MessageHandler(Filters.command, homework_handlers.stop_editing)
-    #     ]
-    # ))
-    # #send solution
-    # dp.add_handler(ConversationHandler(
-    #     entry_points=[
-    #         CommandHandler("solution", solution_handlers.ask_which_solution)
-    #     ], 
-    #     states={
-    #         SEND_SOLUTION_STATE: [
-    #             MessageHandler(Filters.regex(r'^\d*$'), solution_handlers.send_solution),
-    #             MessageHandler(Filters.text(CANCEL_DELETE_HMWRK_BUTTON), solution_handlers.cancel_delete),
-    #             MessageHandler(Filters.text, solution_handlers.number_requested),
-    #         ]
-    #     }, 
-    #     fallbacks=[
-    #         MessageHandler(Filters.command, solution_handlers.stop_editing)
-    #     ]
-    # ))
-    # #edit solutions
-    # dp.add_handler(ConversationHandler(
-    #     entry_points=[
-    #         CommandHandler("editsolution", solution_handlers.ask_add_or_delete),
-    #     ], 
-    #     states={
-    #         ADD_OR_DLT_SLTN_STATE: [
-    #             MessageHandler(Filters.text(ADD_SLTN_BTN), solution_handlers.start_add),
-    #             MessageHandler(Filters.text(DLT_SLTN_BTN), solution_handlers.start_delete),
-    #         ],
-    #         ADD_SLTN_NM_STATE: [
-    #             MessageHandler(Filters.text, solution_handlers.add_name),
-    #         ],
-    #         ADD_SLTN_TSK_STATE: [
-    #             MessageHandler(Filters.text, solution_handlers.add_task_text),
-    #             MessageHandler(Filters.document, solution_handlers.add_task_file),
-    #             MessageHandler(Filters.photo, solution_handlers.add_task_file_as_photo),
-    #         ],
-    #         DLT_SLTN_STATE: [
-    #             MessageHandler(Filters.regex(r'^\d*$'), solution_handlers.delete),
-    #             MessageHandler(Filters.text(CANCEL_DELETE_HMWRK_BUTTON), solution_handlers.cancel_delete),
-    #             MessageHandler(Filters.text, solution_handlers.number_requested),
-    #         ]
-    #     }, 
-    #     fallbacks=[
-    #         MessageHandler(Filters.command, solution_handlers.stop_editing)
-    #     ]
-    # ))
+    #edit requirements, homework or solutions
+    dp.add_handler(ConversationHandler(
+        entry_points=[
+            CommandHandler("edithomework", int_handlers.ask_add_or_delete_homework),
+            CommandHandler("editsolution", int_handlers.ask_add_or_delete_solution),
+            CommandHandler("editrequirements", int_handlers.ask_add_or_delete_requirement)
+        ], 
+        states={
+            int_cs.ADD_OR_DELETE_STATE: [
+                MessageHandler(Filters.text(int_st.ADD_BUTTON), int_handlers.start_add),
+                MessageHandler(Filters.text(int_st.DELETE_BUTTON), int_handlers.start_delete)
+            ],
+            int_cs.ADD_NAME_STATE: [
+                MessageHandler(Filters.text, int_handlers.add_name)
+            ],
+            int_cs.ADD_TASK_STATE: [
+                MessageHandler(Filters.text, int_handlers.add_task_text),
+                MessageHandler(Filters.document, int_handlers.add_task_file),
+                MessageHandler(Filters.photo, int_handlers.add_task_photo),
+            ],
+            int_cs.DELETE_STATE: [
+                MessageHandler(Filters.regex(r'^\d*$'), int_handlers.delete),
+                MessageHandler(Filters.text(int_st.CANCEL_BUTTON), int_handlers.cancel),
+                MessageHandler(Filters.text, int_handlers.number_requested_to_delete),
+            ]
+        }, 
+        fallbacks=[
+            MessageHandler(Filters.command, int_handlers.stop)
+        ]
+    ))
     
     # files
     dp.add_handler(MessageHandler(

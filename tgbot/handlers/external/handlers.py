@@ -41,12 +41,6 @@ def ask_which_link(update: Update, context: CallbackContext):
         update.message.reply_text(text=st.nothing_yet_text)
         return ConversationHandler.END
 
-def ask_which_category(update: Update, context: CallbackContext):
-    if context.user_data["ext_type"] == "book":
-        ExternalResource.sending_chosen_ext_res(index=chosen_index, update=update, is_link_to_book=True)
-    elif context.user_data["ext_type"] == "link":
-        ExternalResource.sending_chosen_ext_res(index=chosen_index, update=update, is_link_to_command=True)
-
 def send(update: Update, context: CallbackContext):
     chosen_index = int(update.message.text) - 1
     if context.user_data["ext_type"] == "book":

@@ -67,7 +67,6 @@ class ExternalResource(models.Model):
     url = models.URLField(max_length=500, default="")
     is_link_to_book = models.BooleanField(default=False)
     is_link_to_command = models.BooleanField(default=False)
-    category = models.CharField(max_length=200, default="")
 
     @classmethod
     def get_books(cls):
@@ -121,7 +120,6 @@ class InternalResource(models.Model):
     file_id = models.CharField(max_length=1000, default="")
     photo_id = models.CharField(max_length=1000, default="")    
     text = models.CharField(max_length=5000, default="")
-    category = models.CharField(max_length=2000, default="")
     is_requirement = models.BooleanField(default=False)
     is_homework = models.BooleanField(default=False)
     is_solution = models.BooleanField(default=False)

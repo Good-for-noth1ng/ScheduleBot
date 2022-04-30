@@ -1,3 +1,5 @@
+which_category_text = "Какой раздел нужен?"
+
 which_link_text = "Какая ссылка тебе нужна?"
 which_book_text = "Какая книга тебе нужна?"
 

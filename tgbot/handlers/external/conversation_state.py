@@ -1,3 +1,4 @@
+CHOOSE_CATEGORY_STATE = "choosecategorystate"
 SEND_STATE = "sendstate"
 ADD_OR_DELETE_STATE = 'addordeletestate'
 ADD_NAME_STATE = 'addnamestate'

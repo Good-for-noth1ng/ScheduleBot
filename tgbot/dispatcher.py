@@ -119,6 +119,11 @@ def setup_dispatcher(dp):
             CommandHandler("books", ext_handlers.ask_which_book)
         ], 
         states={
+            cs.CHOOSE_CATEGORY_STATE: [
+                MessageHandler(Filters.regex(r'^\d*$'), ext_handlers.send),
+                MessageHandler(Filters.text(st.CANCEL_BUTTON), ext_handlers.cancel),
+                MessageHandler(Filters.text, ext_handlers.number_requested_to_choose),
+            ],
             cs.SEND_STATE: [
                 MessageHandler(Filters.regex(r'^\d*$'), ext_handlers.send),
                 MessageHandler(Filters.text(st.CANCEL_BUTTON), ext_handlers.cancel),

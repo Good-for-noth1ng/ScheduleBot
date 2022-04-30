@@ -23,7 +23,7 @@ def ask_which_book(update: Update, context: CallbackContext):
     if text:
         update.message.reply_text(text=st.which_book_text)
         update.message.reply_text(text=text, reply_markup=make_keyboard_to_choose(link_list_lenght=ext_num))
-        return cs.SEND_STATE
+        return cs.CHOOSE_CATEGORY_STATE
     else:
         update.message.reply_text(text=st.nothing_yet_text)
         return ConversationHandler.END 
@@ -36,10 +36,16 @@ def ask_which_link(update: Update, context: CallbackContext):
     if text:
         update.message.reply_text(text=st.which_link_text)
         update.message.reply_text(text=text, reply_markup=make_keyboard_to_choose(link_list_lenght=ext_num))
-        return cs.SEND_STATE
+        return cs.CHOOSE_CATEGORY_STATE
     else:
         update.message.reply_text(text=st.nothing_yet_text)
         return ConversationHandler.END
+
+def ask_which_category(update: Update, context: CallbackContext):
+    if context.user_data["ext_type"] == "book":
+        ExternalResource.sending_chosen_ext_res(index=chosen_index, update=update, is_link_to_book=True)
+    elif context.user_data["ext_type"] == "link":
+        ExternalResource.sending_chosen_ext_res(index=chosen_index, update=update, is_link_to_command=True)
 
 def send(update: Update, context: CallbackContext):
     chosen_index = int(update.message.text) - 1

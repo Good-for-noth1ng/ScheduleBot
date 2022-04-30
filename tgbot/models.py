@@ -31,12 +31,13 @@ class Schedule(models.Model):
         seventh = '18:50'
         eighth = '+'
 
-    day = models.CharField(max_length=2, choices=Day.choices)
+    day = models.CharField(max_length=2, choices=Day.choices, default="")
     time = models.CharField(max_length=5, choices=Time.choices, default="")
     lesson = models.CharField(max_length=200, default="")
     group = models.CharField(max_length=200, default="")
     teacher = models.CharField(max_length=200, default="")
     isOnline = models.CharField(max_length=200, default="")
+     
     
     @classmethod
     def update_schedule(cls, context: CallbackContext):
@@ -66,6 +67,7 @@ class ExternalResource(models.Model):
     url = models.URLField(max_length=500, default="")
     is_link_to_book = models.BooleanField(default=False)
     is_link_to_command = models.BooleanField(default=False)
+    category = models.CharField(max_length=200, default="")
 
     @classmethod
     def get_books(cls):
@@ -119,9 +121,11 @@ class InternalResource(models.Model):
     file_id = models.CharField(max_length=1000, default="")
     photo_id = models.CharField(max_length=1000, default="")    
     text = models.CharField(max_length=5000, default="")
+    category = models.CharField(max_length=2000, default="")
     is_requirement = models.BooleanField(default=False)
     is_homework = models.BooleanField(default=False)
     is_solution = models.BooleanField(default=False)
+    is_schedule = models.BooleanField(default=False)
 
     @classmethod
     def get_requirements(cls):
@@ -136,6 +140,10 @@ class InternalResource(models.Model):
         return cls.objects.all().filter(is_solution=True)
 
     @classmethod
+    def get_schedule(cls):
+        return cls.objects.all().filter(is_schedule=True)
+
+    @classmethod
     def get_num_of_requirements(cls):
         return cls.objects.all().filter(is_requirement=True).count()
     
@@ -148,7 +156,11 @@ class InternalResource(models.Model):
         return cls.objects.all().filter(is_solution=True).count()
     
     @classmethod
-    def make_string_for_choosing(cls, is_requirement=False, is_homework=False, is_solution=False):
+    def get_num_of_schedule(cls):
+        return cls.objects.all().filter(is_schedule=True).count()
+
+    @classmethod
+    def make_string_for_choosing(cls, is_requirement=False, is_homework=False, is_solution=False, is_schedule=False):
         if is_requirement:
             int_res = cls.objects.all().filter(is_requirement=True)
         elif is_homework:
@@ -196,6 +208,19 @@ class InternalResource(models.Model):
             update.message.reply_text(text=text)
             update.message.reply_photo(photo=int_res[index].photo_id)
 
+class InternalResourceFile(models.Model):
+    internal_resource = models.ForeignKey(to=InternalResource, on_delete=models.CASCADE)
+    photo_id = models.CharField(max_length=500, default="")
+    file_id = models.CharField(max_length=500, default="")
+
+    @classmethod
+    def get_files(cls, internal_resource):
+        return cls.objects.all().filter(internal_resource=internal_resource)
+    
+    @classmethod
+    def get_files_num(cls, internal_resource):
+        return cls.objects.all().filter(internal_resource=internal_resource).count()
+    
 class AdminUserManager(Manager):
     def get_queryset(self):
         return super().get_queryset().filter(is_admin=True)

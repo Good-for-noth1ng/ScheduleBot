@@ -117,8 +117,8 @@ class ExternalResource(models.Model):
 #telegram will store these photos and files, db will store the text 
 class InternalResource(models.Model):
     name = models.CharField(max_length=2000, default="")
-    file_id = models.CharField(max_length=1000, default="")
-    photo_id = models.CharField(max_length=1000, default="")    
+    # file_id = models.CharField(max_length=1000, default="")
+    # photo_id = models.CharField(max_length=1000, default="")    
     text = models.CharField(max_length=5000, default="")
     is_requirement = models.BooleanField(default=False)
     is_homework = models.BooleanField(default=False)

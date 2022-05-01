@@ -130,11 +130,11 @@ class InternalResource(models.Model):
         return cls.objects.all().filter(is_requirement=True)
     
     @classmethod
-    def get_requirements(cls):
+    def get_homeworks(cls):
         return cls.objects.all().filter(is_homework=True)
     
     @classmethod
-    def get_requirements(cls):
+    def get_solutions(cls):
         return cls.objects.all().filter(is_solution=True)
 
     @classmethod
@@ -156,6 +156,21 @@ class InternalResource(models.Model):
     @classmethod
     def get_num_of_schedule(cls):
         return cls.objects.all().filter(is_schedule=True).count()
+
+    @classmethod
+    def get_name_by_index(cls, index, is_solution=False, is_homework=False, is_requirement=False):
+        return cls.objects.filter(is_homework=is_homework, is_solution=is_solution, is_requirement=is_requirement)[index].name
+
+    @classmethod
+    def does_exist(cls, name, is_solution=False, is_requirement=False, is_homework=False):
+        does_exist = cls.objects.filter(
+            name=name, 
+            is_requirement=is_requirement, 
+            is_homework=is_homework, 
+            is_solution=is_solution
+        ).exists()
+        return does_exist
+        
 
     @classmethod
     def make_string_for_choosing(cls, is_requirement=False, is_homework=False, is_solution=False, is_schedule=False):
@@ -199,15 +214,28 @@ class InternalResource(models.Model):
         if int_res[index].text:
             text += f"{int_res[index].text}"
             update.message.reply_text(text=text)
-        elif int_res[index].file_id:
-            update.message.reply_text(text=text)
-            update.message.reply_document(document=int_res[index].file_id)
-        elif int_res[index].photo_id:
-            update.message.reply_text(text=text)
-            update.message.reply_photo(photo=int_res[index].photo_id)
+        # elif int_res[index].file_id:
+        #     update.message.reply_text(text=text)
+        #     update.message.reply_document(document=int_res[index].file_id)
+        # elif int_res[index].photo_id:
+        #     update.message.reply_text(text=text)
+        #     update.message.reply_photo(photo=int_res[index].photo_id)
+
+    @classmethod
+    def update_int_res(cls, name, is_solution=False, is_requirement=False, is_homework=False):
+        int_res, created = cls.objects.update_or_create(
+            name=name,
+            defaults={
+                'is_solution': is_solution,
+                'is_requirement': is_requirement,
+                'is_homework': is_homework
+            }
+        )
+        int_res.save()
+        return int_res
 
 class InternalResourceFile(models.Model):
-    internal_resource = models.ForeignKey(to=InternalResource, on_delete=models.CASCADE)
+    internal_resource = models.ForeignKey(to=InternalResource, on_delete=models.CASCADE, null=True, blank=True)
     photo_id = models.CharField(max_length=500, default="")
     file_id = models.CharField(max_length=500, default="")
 
@@ -218,7 +246,7 @@ class InternalResourceFile(models.Model):
     @classmethod
     def get_files_num(cls, internal_resource):
         return cls.objects.all().filter(internal_resource=internal_resource).count()
-    
+        
 class AdminUserManager(Manager):
     def get_queryset(self):
         return super().get_queryset().filter(is_admin=True)

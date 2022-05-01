@@ -194,6 +194,14 @@ def setup_dispatcher(dp):
                 MessageHandler(Filters.text, int_handlers.add_name)
             ],
             int_cs.ADD_TASK_STATE: [
+                MessageHandler(
+                    Filters.text(int_st.NO_MORE_FILES_BUTTON), 
+                    int_handlers.end_receiving_files
+                ),
+                MessageHandler(
+                    Filters.text(int_st.MORE_FILES_BUTTON), 
+                    int_handlers.end_receiving_files
+                ),
                 MessageHandler(Filters.text, int_handlers.add_task_text),
                 MessageHandler(Filters.document, int_handlers.add_task_file),
                 MessageHandler(Filters.photo, int_handlers.add_task_photo),

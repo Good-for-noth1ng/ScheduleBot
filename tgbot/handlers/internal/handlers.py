@@ -4,10 +4,10 @@ from telegram.ext import (
     ConversationHandler
 )
 
-from tgbot.models import InternalResource
+from tgbot.models import InternalResource, InternalResourceFile
 import tgbot.handlers.internal.conversation_state as int_cs
 import tgbot.handlers.internal.static_text as int_st
-from tgbot.handlers.internal.keyboards import make_keyboard_add_or_delete, make_keyboard_to_choose
+from tgbot.handlers.internal.keyboards import make_keyboard_add_or_delete, make_keyboard_to_choose, make_keyboard_to_stop_receiving_files
 
 def setting_answer_string(int_num, is_homework=False, is_requirement=False, is_solution=False):
     if int_num > 0:
@@ -59,11 +59,25 @@ def ask_which_requirement(update: Update, context: CallbackContext):
 def send(update: Update, context: CallbackContext):
     chosen_index = int(update.message.text) - 1
     if context.user_data["int_type"] == "homework":
-        InternalResource.sending_chosen_int_res(index=chosen_index, update=update, is_homework=True)
+        int_res = InternalResource.get_homeworks()
     elif context.user_data["int_type"] == "solution":
-        InternalResource.sending_chosen_int_res(index=chosen_index, update=update, is_solution=True)
+        int_res = InternalResource.get_solutions()
     elif context.user_data["int_type"] == "requirement":
-        InternalResource.sending_chosen_int_res(index=chosen_index, update=update, is_requirement=True)
+        int_res = InternalResource.get_requirements()
+
+    int_res_files = InternalResourceFile.get_files(internal_resource=int_res[chosen_index])
+    
+    text = f"🧭 {int_res[chosen_index].name}\n"
+    if int_res[chosen_index].text:
+        text += f"{int_res[chosen_index].text}"
+        update.message.reply_text(text=text)
+    elif int_res_files:
+        update.message.reply_text(text=text)
+        for int_res_file in int_res_files:
+            if int_res_file.photo_id:
+                update.message.reply_photo(photo=int_res_file.photo_id, reply_markup=ReplyKeyboardRemove())
+            elif int_res_file.file_id:
+                update.message.reply_document(document=int_res_file.file_id, reply_markup=ReplyKeyboardRemove())
     context.user_data.clear()
     return ConversationHandler.END
 
@@ -120,26 +134,57 @@ def start_delete(update: Update, context: CallbackContext):
 def add_name(update: Update, context: CallbackContext):
     context.user_data["name"] = update.message.text
     if context.user_data["int_type"] == "homework":
-        update.message.reply_text(text=int_st.put_homework_task_text)
+        does_exist = InternalResource.does_exist(name=context.user_data["name"], is_homework=True)
+        if not does_exist:
+            update.message.reply_text(text=int_st.put_homework_task_text)
+        else:
+            update.message.reply_text(text=int_st.isnt_unique_name_text)
+            return int_cs.ADD_NAME_STATE
     elif context.user_data["int_type"] == "solution":
-        update.message.reply_text(text=int_st.put_solution_task_text)
+        does_exist = InternalResource.does_exist(name=context.user_data["name"], is_solution=True)
+        if not does_exist:
+            update.message.reply_text(text=int_st.put_solution_task_text)
+        else:
+            update.message.reply_text(text=int_st.isnt_unique_name_text)
+            return int_cs.ADD_NAME_STATE
     elif context.user_data["int_type"] == "requirement":
-        update.message.reply_text(text=int_st.put_requirement_task_text)
+        does_exist = InternalResource.does_exist(name=context.user_data["name"], is_requirement=True)
+        if not does_exist:
+            update.message.reply_text(text=int_st.put_requirement_task_text)
+        else:
+            update.message.reply_text(text=int_st.isnt_unique_name_text)
+            return int_cs.ADD_NAME_STATE
     return int_cs.ADD_TASK_STATE
 
 def add_task_file(update: Update, context: CallbackContext):
+    update.message.reply_text(text="Файл принят...", reply_markup=make_keyboard_to_stop_receiving_files())
     name = context.user_data["name"]
     file_id = update.message.document.file_id
     if context.user_data["int_type"] == "homework":
-        int_res = InternalResource(name=name, file_id=file_id, is_homework=True)
+        int_res = InternalResource.update_int_res(name=name, is_homework=True)
+        int_res_file = InternalResourceFile(internal_resource=int_res, file_id=file_id)
     elif context.user_data["int_type"] == "solution":
-        int_res = InternalResource(name=name, file_id=file_id, is_solution=True)
+        int_res = InternalResource.update_int_res(name=name, is_solution=True)
+        int_res_file = InternalResourceFile(internal_resource=int_res, file_id=file_id)
     elif context.user_data["int_type"] == "requirement":
-        int_res = InternalResource(name=name, file_id=file_id, is_requirement=True)
-    int_res.save()
-    update.message.reply_text(int_st.is_added_text)
-    context.user_data.clear()
-    return ConversationHandler.END
+        int_res = InternalResource.update_int_res(name=name, is_requirement=True)
+        int_res_file = InternalResourceFile(internal_resource=int_res, file_id=file_id)
+    int_res_file.save()
+    return int_cs.ADD_TASK_STATE
+    ##################################################
+    # if context.user_data["int_type"] == "homework":
+    #     int_res = InternalResource(name=name, file_id=file_id, is_homework=True)
+    # elif context.user_data["int_type"] == "solution":
+    #     int_res = InternalResource(name=name, file_id=file_id, is_solution=True)
+    # elif context.user_data["int_type"] == "requirement":
+    #     int_res = InternalResource(name=name, file_id=file_id, is_requirement=True)
+    # int_res.save()
+    ############################################
+    # update.message.reply_text(int_st.is_added_text)
+    # context.user_data.clear()
+    # return ConversationHandler.END
+    
+    
     #Code for saving file in local dir
     # document = update.message.document
     # download_path = os.path.join(MEDIA_ROOT, document.file_name)
@@ -149,19 +194,33 @@ def add_task_file(update: Update, context: CallbackContext):
     # solution.save()
 
 def add_task_photo(update: Update, context: CallbackContext):
+    update.message.reply_text(text="Фото принято...", reply_markup=make_keyboard_to_stop_receiving_files())
     name = context.user_data["name"]
     photo_id = update.message.photo[-1].file_id
     if context.user_data["int_type"] == "homework":
-        int_res = InternalResource(name=name, photo_id=photo_id, is_homework=True)
+        int_res = InternalResource.update_int_res(name=name, is_homework=True)
+        int_res_file = InternalResourceFile(internal_resource=int_res, photo_id=photo_id)
     elif context.user_data["int_type"] == "solution":
-        int_res = InternalResource(name=name, photo_id=photo_id, is_solution=True)
+        int_res = InternalResource.update_int_res(name=name, is_solution=True)
+        int_res_file = InternalResourceFile(internal_resource=int_res, photo_id=photo_id)
     elif context.user_data["int_type"] == "requirement":
-        int_res = InternalResource(name=name, photo_id=photo_id, is_requirement=True)
-    int_res.save()
-    update.message.reply_text(int_st.is_added_text)
-    context.user_data.clear()
-    return ConversationHandler.END
+        int_res = InternalResource.update_int_res(name=name, is_requirement=True)
+        int_res_file = InternalResourceFile(internal_resource=int_res, photo_id=photo_id)
+    int_res_file.save()
+    return int_cs.ADD_TASK_STATE
+    # update.message.reply_text(int_st.is_added_text)
+    # context.user_data.clear()
+    # return ConversationHandler.END
 
+def end_receiving_files(update: Update, context: CallbackContext):
+    answer = update.message.text
+    if answer == int_st.NO_MORE_FILES_BUTTON:
+        update.message.reply_text(text=int_st.is_added_text, reply_markup=ReplyKeyboardRemove())
+        context.user_data.clear()
+        return ConversationHandler.END
+    else:
+        update.message.reply_text(text=int_st.send_your_files_text, reply_markup=ReplyKeyboardRemove())
+        return int_cs.ADD_TASK_STATE
 
 def add_task_text(update: Update, context: CallbackContext):
     name = context.user_data["name"]
@@ -190,7 +249,7 @@ def delete(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 def cancel(update: Update, context: CallbackContext):
-    update.message.reply_text(text=int_st.cancel_text)
+    update.message.reply_text(text=int_st.cancel_text,reply_markup=ReplyKeyboardRemove())
     context.user_data.clear()
     return ConversationHandler.END
 

@@ -33,10 +33,9 @@ Return to /start
 """
     context.bot.send_message(
         chat_id=u.user_id,
-        text=message
-        # text=user_message,
+        text=user_message,
     )
-
+    print(message)
     admin_message = f"⚠️⚠️⚠️ for {u.tg_str}:\n{message}"[:4090]
     if TELEGRAM_LOGS_CHAT_ID:
         context.bot.send_message(

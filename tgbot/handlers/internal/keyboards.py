@@ -1,5 +1,11 @@
 from telegram import KeyboardButton, ReplyKeyboardMarkup
-from tgbot.handlers.internal.static_text import ADD_BUTTON, DELETE_BUTTON, CANCEL_BUTTON
+from tgbot.handlers.internal.static_text import (
+    ADD_BUTTON, 
+    DELETE_BUTTON, 
+    CANCEL_BUTTON, 
+    NO_MORE_FILES_BUTTON, 
+    MORE_FILES_BUTTON
+)
 
 def build_menu(buttons, n_cols, header_buttons=None, bottom_buttons=None):
     menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
@@ -22,3 +28,9 @@ def make_keyboard_to_choose(link_list_lenght)->ReplyKeyboardMarkup:
         buttons.append(str(n+1))
     menu = build_menu(buttons=buttons, n_cols=4, header_buttons=CANCEL_BUTTON)
     return ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
+
+def make_keyboard_to_stop_receiving_files()->ReplyKeyboardMarkup:
+    buttons = []
+    buttons.append([KeyboardButton(NO_MORE_FILES_BUTTON)])
+    buttons.append([KeyboardButton(MORE_FILES_BUTTON)])
+    return ReplyKeyboardMarkup(keyboard=buttons, one_time_keyboard=True)

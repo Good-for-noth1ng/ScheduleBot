@@ -3,7 +3,7 @@ from telegram.ext import (
     CallbackContext,
     ConversationHandler
 )
-from tgbot.models import Schedule
+from tgbot.models import Schedule, InternalResource
 from tgbot.handlers.schedule.keyboards import (
     make_keyboard_for_choosing_day, 
     make_keyboard_for_editing_day_schedule, 
@@ -54,6 +54,9 @@ def make_string_schedule(sched):
     if sched.teacher:
         text += f'{teacher_emojie}  {sched.teacher}\n'
     return text
+
+def send_file_schedule(update: Update, context: CallbackContext):
+    pass
 
 def send_schedule(update: Update, context: CallbackContext):
     day = update.message.text

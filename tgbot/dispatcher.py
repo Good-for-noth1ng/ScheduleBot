@@ -29,7 +29,8 @@ from tgbot.handlers.schedule.static_text import (
     CANCEL_BUTTON,
     SET_BUTTON,
     DELETE_BUTTON,
-    SKIP_BUTTON
+    SKIP_BUTTON,
+    SEND_PHOTO_BUTTON
 )
 from tgbot.handlers.schedule.conversation_states import (
     CHOOSE_TIME,
@@ -64,6 +65,7 @@ def setup_dispatcher(dp):
         states={
             CHOOSE_TIME: [
                 MessageHandler(Filters.text(DAYS_TO_CHOOSE), schedule_handlers.send_schedule),
+                # MessageHandler(Filters.text(SEND_PHOTO_BUTTON), callback)
             ],
         }, 
         fallbacks=[
@@ -218,9 +220,9 @@ def setup_dispatcher(dp):
     ))
     
     # files
-    dp.add_handler(MessageHandler(
-        Filters.animation, files.show_file_id,
-    ))
+    # dp.add_handler(MessageHandler(
+    #     Filters.animation, files.show_file_id,
+    # ))
 
     # handling errors
     dp.add_error_handler(error.send_stacktrace_to_tg_chat)

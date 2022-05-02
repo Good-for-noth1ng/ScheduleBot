@@ -65,19 +65,19 @@ def send(update: Update, context: CallbackContext):
     elif context.user_data["int_type"] == "requirement":
         int_res = InternalResource.get_requirements()
 
+    text = f"🧭 {int_res[chosen_index].name}\n"
+    update.message.reply_text(text=text, reply_markup=ReplyKeyboardRemove())
+    if int_res[chosen_index].text:
+        text = f"{int_res[chosen_index].text}"
+        update.message.reply_text(text=text, reply_markup=ReplyKeyboardRemove())
+
     int_res_files = InternalResourceFile.get_files(internal_resource=int_res[chosen_index])
     
-    text = f"🧭 {int_res[chosen_index].name}\n"
-    if int_res[chosen_index].text:
-        text += f"{int_res[chosen_index].text}"
-        update.message.reply_text(text=text)
-    elif int_res_files:
-        update.message.reply_text(text=text)
-        for int_res_file in int_res_files:
-            if int_res_file.photo_id:
-                update.message.reply_photo(photo=int_res_file.photo_id, reply_markup=ReplyKeyboardRemove())
-            elif int_res_file.file_id:
-                update.message.reply_document(document=int_res_file.file_id, reply_markup=ReplyKeyboardRemove())
+    for int_res_file in int_res_files:
+        if int_res_file.photo_id:    
+            update.message.reply_photo(photo=int_res_file.photo_id)
+        elif int_res_file.file_id:
+            update.message.reply_document(document=int_res_file.file_id)
     context.user_data.clear()
     return ConversationHandler.END
 

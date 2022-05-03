@@ -116,9 +116,7 @@ class ExternalResource(models.Model):
 #user sends photo, file or text. This set can be requirement, homework or soluton
 #telegram will store these photos and files, db will store the text 
 class InternalResource(models.Model):
-    name = models.CharField(max_length=2000, default="")
-    # file_id = models.CharField(max_length=1000, default="")
-    # photo_id = models.CharField(max_length=1000, default="")    
+    name = models.CharField(max_length=2000, default="")    
     text = models.CharField(max_length=5000, default="")
     is_requirement = models.BooleanField(default=False)
     is_homework = models.BooleanField(default=False)
@@ -222,13 +220,14 @@ class InternalResource(models.Model):
         #     update.message.reply_photo(photo=int_res[index].photo_id)
 
     @classmethod
-    def update_int_res(cls, name, is_solution=False, is_requirement=False, is_homework=False):
+    def update_int_res(cls, name, is_solution=False, is_requirement=False, is_homework=False, is_schedule=False):
         int_res, created = cls.objects.update_or_create(
             name=name,
             defaults={
                 'is_solution': is_solution,
                 'is_requirement': is_requirement,
-                'is_homework': is_homework
+                'is_homework': is_homework,
+                'is_schedule': is_schedule
             }
         )
         int_res.save()

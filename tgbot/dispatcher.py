@@ -30,7 +30,11 @@ from tgbot.handlers.schedule.static_text import (
     SET_BUTTON,
     DELETE_BUTTON,
     SKIP_BUTTON,
-    SEND_PHOTO_BUTTON
+    SEND_PHOTO_BUTTON,
+    SEND_PHOTO_FOR_EDITING_BUTTON,
+    NO_MORE_FILES_BUTTON,
+    MORE_FILES_BUTTON,
+    DELETE_PHOTO_BUTTON
 )
 from tgbot.handlers.schedule.conversation_states import (
     CHOOSE_TIME,
@@ -39,7 +43,10 @@ from tgbot.handlers.schedule.conversation_states import (
     EDIT_LESSON,
     EDIT_GROUP,
     EDIT_TEACHER,
-    EDIT_PLACE
+    EDIT_PLACE,
+    SEND_SCHEDULE_FILE_FOR_ADDING,
+    CHOOSE_FILE_TO_DELETE,
+    DELETE_FILE,
 )
 
 from tgbot.handlers.external import handlers as ext_handlers
@@ -65,7 +72,7 @@ def setup_dispatcher(dp):
         states={
             CHOOSE_TIME: [
                 MessageHandler(Filters.text(DAYS_TO_CHOOSE), schedule_handlers.send_schedule),
-                # MessageHandler(Filters.text(SEND_PHOTO_BUTTON), callback)
+                MessageHandler(Filters.text(SEND_PHOTO_BUTTON), schedule_handlers.send_file_schedule)
             ],
         }, 
         fallbacks=[
@@ -81,7 +88,21 @@ def setup_dispatcher(dp):
         states={
             CHOOSE_TIME_FOR_EDITING: [
                 MessageHandler(Filters.text(DAYS_TO_EDIT), schedule_handlers.send_keyboard_for_editing_time),
+                MessageHandler(Filters.text(SEND_PHOTO_FOR_EDITING_BUTTON), schedule_handlers.add_or_delete_file),
+                MessageHandler(Filters.text(DELETE_PHOTO_BUTTON), schedule_handlers.add_or_delete_file),
                 MessageHandler(Filters.text(CANCEL_BUTTON), schedule_handlers.cancel_editing),
+            ],
+            SEND_SCHEDULE_FILE_FOR_ADDING: [
+                MessageHandler(Filters.photo, schedule_handlers.add_schedule_photo),
+                MessageHandler(Filters.document, schedule_handlers.add_schedule_file),
+                MessageHandler(Filters.text(NO_MORE_FILES_BUTTON), schedule_handlers.end_sending_files),
+                MessageHandler(Filters.text(MORE_FILES_BUTTON), schedule_handlers.end_sending_files)
+            ],
+            CHOOSE_FILE_TO_DELETE: [
+                
+            ],
+            DELETE_FILE: [
+
             ],
             EDIT_OR_DELETE: [
                 MessageHandler(Filters.text(TIME_TO_EDIT), schedule_handlers.set_or_delete),

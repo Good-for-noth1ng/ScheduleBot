@@ -8,7 +8,10 @@ from tgbot.handlers.schedule.static_text import (
     BACK_BUTTON,
     SET_BUTTON,
     DELETE_BUTTON,
-    SKIP_BUTTON
+    SKIP_BUTTON,
+    SEND_PHOTO_BUTTON,
+    SEND_PHOTO_FOR_EDITING_BUTTON,
+    DELETE_PHOTO_BUTTON
 )
 
 def build_menu(buttons, n_cols, header_buttons=None, bottom_buttons=None):
@@ -23,13 +26,17 @@ def make_keyboard_for_choosing_day() -> ReplyKeyboardMarkup:
     buttons = []
     for day in DAYS_TO_CHOOSE:
         buttons.append(day)
-    return ReplyKeyboardMarkup(keyboard=build_menu(buttons=buttons, n_cols=3), one_time_keyboard=True)
+    menu = build_menu(buttons=buttons, n_cols=3, bottom_buttons=SEND_PHOTO_BUTTON)
+    return ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
 
 def make_keyboard_for_editing_day_schedule() -> ReplyKeyboardMarkup:
     buttons = []
     for day in DAYS_TO_EDIT:
         buttons.append(day)
-    return ReplyKeyboardMarkup(build_menu(buttons=buttons, n_cols=3), one_time_keyboard=True)
+    menu = build_menu(buttons=buttons, n_cols=3, bottom_buttons=SEND_PHOTO_FOR_EDITING_BUTTON)
+    menu.append([DELETE_PHOTO_BUTTON])
+    menu.append([CANCEL_BUTTON])
+    return ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
 
 def make_keyboard_for_editing_time_schedule() -> ReplyKeyboardMarkup:
     buttons = []

@@ -18,8 +18,7 @@ def setting_answer_string(ext_num, is_book=False, is_link=False):
 def ask_which_book(update: Update, context: CallbackContext):
     ext_num = ExternalResource.get_books_num()
     context.user_data["ext_type"] = "book"
-    is_book = True
-    text = setting_answer_string(ext_num=ext_num, is_book=is_book)
+    text = setting_answer_string(ext_num=ext_num, is_book=True)
     if text:
         update.message.reply_text(text=st.which_book_text)
         update.message.reply_text(text=text, reply_markup=make_keyboard_to_choose(link_list_lenght=ext_num))
@@ -31,8 +30,7 @@ def ask_which_book(update: Update, context: CallbackContext):
 def ask_which_link(update: Update, context: CallbackContext):
     ext_num = ExternalResource.get_urls_num()
     context.user_data["ext_type"] = "link"
-    is_link = True
-    text = setting_answer_string(ext_num=ext_num, is_link=is_link)
+    text = setting_answer_string(ext_num=ext_num, is_link=True)
     if text:
         update.message.reply_text(text=st.which_link_text)
         update.message.reply_text(text=text, reply_markup=make_keyboard_to_choose(link_list_lenght=ext_num))

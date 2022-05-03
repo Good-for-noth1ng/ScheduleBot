@@ -5,3 +5,7 @@ EDIT_LESSON = "editlesson"
 EDIT_GROUP = "editgroup"
 EDIT_TEACHER = "editteacher"
 EDIT_PLACE = "editplace"
+
+SEND_SCHEDULE_FILE_FOR_ADDING = "sendschedulefileforadding"
+CHOOSE_FILE_TO_DELETE = "choosefiletodelete"
+DELETE_FILE = "deletefile"

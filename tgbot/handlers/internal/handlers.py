@@ -103,6 +103,7 @@ def start_add(update: Update, context: CallbackContext):
         update.message.reply_text(text=int_st.put_name_text, reply_markup=ReplyKeyboardRemove())
     elif context.user_data["int_type"] == "requirement":
         update.message.reply_text(text=int_st.put_name_text, reply_markup=ReplyKeyboardRemove())
+    
     return int_cs.ADD_NAME_STATE
 
 def start_delete(update: Update, context: CallbackContext):
@@ -122,7 +123,7 @@ def start_delete(update: Update, context: CallbackContext):
         text = InternalResource.make_string_for_choosing(
             is_requirement=is_requirement, 
             is_homework=is_homework, 
-            is_solution=is_solution
+            is_solution=is_solution,
         )
         update.message.reply_text(text=text, reply_markup=make_keyboard_to_choose(link_list_lenght=int_num))
         return int_cs.DELETE_STATE
@@ -171,19 +172,6 @@ def add_task_file(update: Update, context: CallbackContext):
         int_res_file = InternalResourceFile(internal_resource=int_res, file_id=file_id)
     int_res_file.save()
     return int_cs.ADD_TASK_STATE
-    ##################################################
-    # if context.user_data["int_type"] == "homework":
-    #     int_res = InternalResource(name=name, file_id=file_id, is_homework=True)
-    # elif context.user_data["int_type"] == "solution":
-    #     int_res = InternalResource(name=name, file_id=file_id, is_solution=True)
-    # elif context.user_data["int_type"] == "requirement":
-    #     int_res = InternalResource(name=name, file_id=file_id, is_requirement=True)
-    # int_res.save()
-    ############################################
-    # update.message.reply_text(int_st.is_added_text)
-    # context.user_data.clear()
-    # return ConversationHandler.END
-    
     
     #Code for saving file in local dir
     # document = update.message.document
@@ -208,9 +196,6 @@ def add_task_photo(update: Update, context: CallbackContext):
         int_res_file = InternalResourceFile(internal_resource=int_res, photo_id=photo_id)
     int_res_file.save()
     return int_cs.ADD_TASK_STATE
-    # update.message.reply_text(int_st.is_added_text)
-    # context.user_data.clear()
-    # return ConversationHandler.END
 
 def end_receiving_files(update: Update, context: CallbackContext):
     answer = update.message.text

@@ -3,7 +3,7 @@ from telegram.ext import (
     CallbackContext,
     ConversationHandler
 )
-from tgbot.models import Schedule, InternalResource
+from tgbot.models import Schedule, InternalResource, InternalResourceFile
 from tgbot.handlers.schedule.keyboards import (
     make_keyboard_for_choosing_day, 
     make_keyboard_for_editing_day_schedule, 
@@ -28,8 +28,15 @@ from tgbot.handlers.schedule.static_text import (
     teacher_emojie,
     train_emojie,
     put_format_of_learning,
-    TIME_TO_EDIT
+    file_is_added,
+    send_your_files_text,
+    TIME_TO_EDIT,
+    NO_MORE_FILES_BUTTON,
+    MORE_FILES_BUTTON,
+    DELETE_PHOTO_BUTTON,
+    SEND_PHOTO_FOR_EDITING_BUTTON
 )
+
 from tgbot.handlers.schedule.conversation_states import ( 
     CHOOSE_TIME,
     CHOOSE_TIME_FOR_EDITING,
@@ -37,9 +44,12 @@ from tgbot.handlers.schedule.conversation_states import (
     EDIT_LESSON,
     EDIT_GROUP,
     EDIT_TEACHER,
-    EDIT_PLACE
+    EDIT_PLACE,
+    SEND_SCHEDULE_FILE_FOR_ADDING,
+    CHOOSE_FILE_TO_DELETE,
+    DELETE_FILE
 )
-# sending schedule
+
 def choose_day(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(text=choose_day_text, reply_markup=make_keyboard_for_choosing_day())
     return CHOOSE_TIME
@@ -55,9 +65,19 @@ def make_string_schedule(sched):
         text += f'{teacher_emojie}  {sched.teacher}\n'
     return text
 
+#sending file schedule
 def send_file_schedule(update: Update, context: CallbackContext):
-    pass
+    internal_resource = InternalResource.get_schedule()
+    internal_files = InternalResourceFile.get_files(internal_resource=internal_resource)
+    for internal_file in internal_files:
+        if internal_file.photo_id:    
+            update.message.reply_photo(photo=internal_file.photo_id)
+        elif internal_file.file_id:
+            update.message.reply_document(document=internal_file.file_id)
+    context.user_data.clear()
+    return ConversationHandler.END
 
+#sending text schedule
 def send_schedule(update: Update, context: CallbackContext):
     day = update.message.text
     schedule_in_chosen_day = Schedule.objects.all().filter(day=day)
@@ -93,6 +113,43 @@ def make_string_schedule_to_edit(sched):
     if sched.teacher:
         text += f'  [{sched.teacher}]'
     return text
+
+#asking user add or delete files
+def add_or_delete_file(update: Update, context: CallbackContext):
+    if update.message.text == SEND_PHOTO_FOR_EDITING_BUTTON:
+        update.message.reply_text(text=send_your_files_text)
+        return SEND_SCHEDULE_FILE_FOR_ADDING
+    else:
+        update.message.reply_text(text)
+
+#user send his photos and files
+def add_schedule_photo(update: Update, context: CallbackContext):
+    update.message.reply_text(text="Фото принято...", reply_markup=make_keyboard_to_stop_receiving_files())
+    photo_id = update.message.photo[-1].file_id
+    internal_resource = InternalResource.update_int_res(name="schedule_files", is_schedule=True)
+    internal_file = InternalResourceFile(internal_resource=internal_resource, photo_id=photo_id)
+    internal_file.save()
+    update.message.reply_text(text=successful_editing)
+    return SEND_SCHEDULE_FILE_FOR_ADDING
+    
+def add_schedule_file(update: Update, context: CallbackContext):
+    update.message.reply_text(text="Фото принято...", reply_markup=make_keyboard_to_stop_receiving_files())
+    file_id = update.message.document.file_id
+    internal_resource = InternalResource.update_int_res(name="schedule_files", is_schedule=True)
+    internal_file = InternalResourceFile(internal_resource=internal_resource, file_id=file_id)
+    internal_file.save()
+    update.message.reply_text(text=successful_editing)
+    return SEND_SCHEDULE_FILE_FOR_ADDING
+
+def end_sending_files(update: Update, context: CallbackContext):
+    answer = update.message.text
+    if answer == NO_MORE_FILES_BUTTON:
+        update.message.reply_text(text=file_is_added, reply_markup=ReplyKeyboardRemove())
+        context.user_data.clear()
+        return ConversationHandler.END
+    else:
+        update.message.reply_text(text=send_your_files_text, reply_markup=ReplyKeyboardRemove())
+        return SEND_SCHEDULE_FILE_FOR_ADDING
 
 def send_keyboard_for_editing_time(update: Update, context: CallbackContext):
     day = update.message.text.split()[1]

@@ -63,13 +63,8 @@ def send_schedule(update: Update, context: CallbackContext):
                     update.message.reply_text(text=text)
         return ConversationHandler.END
     else:
-        update.message.reply_text(text=sched_st.no_lessons_text)
+        update.message.reply_text(text=sched_st.no_lessons_text, reply_markup=ReplyKeyboardRemove())
         return ConversationHandler.END
-
-def cancel_sending_schedule(update: Update, context: CallbackContext):
-    context.user_data.clear()
-    update.message.reply_markup(ReplyKeyboardRemove())
-    return ConversationHandler.END
 
 # editing time in schedule
 def send_keyboard_for_editing_day(update: Update, context: CallbackContext):
@@ -189,7 +184,7 @@ def send_request_for_editing(update: Update, context: CallbackContext):
     
 def clear_chosen_time_field(update: Update, context: CallbackContext):
     Schedule.deleting_schedule(context=context)
-    update.message.reply_text(text=sched_st.sucessful_deleting)
+    update.message.reply_text(text=sched_st.sucessful_deleting, reply_markup=ReplyKeyboardRemove())
     context.user_data.clear()
     return ConversationHandler.END
 

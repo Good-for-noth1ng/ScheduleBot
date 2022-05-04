@@ -144,7 +144,7 @@ def setup_dispatcher(dp):
             cs.SEND_STATE: [
                 MessageHandler(Filters.regex(r'^\d*$'), ext_handlers.send),
                 MessageHandler(Filters.text(st.CANCEL_BUTTON), ext_handlers.cancel),
-                MessageHandler(Filters.text, ext_handlers.number_requested_to_choose),
+                MessageHandler(Filters.all, ext_handlers.number_requested_to_choose),
             ]
         }, 
         fallbacks=[
@@ -173,7 +173,7 @@ def setup_dispatcher(dp):
             cs.DELETE_STATE: [
                 MessageHandler(Filters.regex(r'^\d*$'), ext_handlers.delete),
                 MessageHandler(Filters.text(st.CANCEL_BUTTON), ext_handlers.cancel),
-                MessageHandler(Filters.text, ext_handlers.number_requested_to_delete),
+                MessageHandler(Filters.all, ext_handlers.number_requested_to_delete),
             ],
         }, 
         fallbacks=[
@@ -192,7 +192,7 @@ def setup_dispatcher(dp):
             int_cs.SEND_STATE: [
                 MessageHandler(Filters.regex(r'^\d*$'), int_handlers.send),
                 MessageHandler(Filters.text(int_st.CANCEL_BUTTON), int_handlers.cancel),
-                MessageHandler(Filters.text, int_handlers.number_requested_to_choose),
+                MessageHandler(Filters.all, int_handlers.number_requested_to_choose),
             ]
         }, 
         fallbacks=[
@@ -231,7 +231,7 @@ def setup_dispatcher(dp):
             int_cs.DELETE_STATE: [
                 MessageHandler(Filters.regex(r'^\d*$'), int_handlers.delete),
                 MessageHandler(Filters.text(int_st.CANCEL_BUTTON), int_handlers.cancel),
-                MessageHandler(Filters.text, int_handlers.number_requested_to_delete),
+                MessageHandler(Filters.all, int_handlers.number_requested_to_delete),
             ]
         }, 
         fallbacks=[
@@ -312,7 +312,7 @@ def set_up_commands(bot_instance: Bot) -> None:
             'books': 'Список книг 📚',
             'editbooks': 'Добавить/удалить книгу 📝',
             'requirements': 'Список требований 📖',
-            'editrequirements': 'Изменить требования 🖍️',
+            'editrequirements': 'Добавить/удалить требования 🖍️',
             'homework': 'Узнать что задано 📅',
             'edithomework': 'Добавить/удалить домашку ✒️',
             'solution': 'Чужие решения 🕯️',

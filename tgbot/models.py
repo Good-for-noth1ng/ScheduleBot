@@ -197,7 +197,7 @@ class InternalResource(models.Model):
     def deleting_solutions_by_index(cls, index):
         int_res = cls.objects.all().filter(is_solution=True)
         int_res[index].delete()
-    
+        
     @classmethod
     def sending_chosen_int_res(cls, index, update: Update, is_requirement=False, is_homework=False, is_solution=False):
         if is_requirement:
@@ -242,6 +242,12 @@ class InternalResourceFile(models.Model):
     def get_files(cls, internal_resource):
         return cls.objects.all().filter(internal_resource=internal_resource)
     
+    @classmethod
+    def delete_chosen_file(cls, index):
+        internal_resource = InternalResource.get_schedule()
+        internal_files = cls.get_files(internal_resource=internal_resource[0])
+        internal_files[index].delete()
+
     @classmethod
     def get_files_num(cls, internal_resource):
         return cls.objects.all().filter(internal_resource=internal_resource).count()

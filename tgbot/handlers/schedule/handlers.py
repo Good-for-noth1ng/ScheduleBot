@@ -9,7 +9,9 @@ from tgbot.handlers.schedule.keyboards import (
     make_keyboard_for_editing_day_schedule, 
     make_keyboard_for_editing_time_schedule,
     make_keyboard_set_or_delete,
-    make_keyboard_for_skip_and_cancel
+    make_keyboard_for_skip_and_cancel,
+    make_keyboard_for_deleting_file,
+    make_keyboard_to_stop_receiving_files
 )
 from tgbot.handlers.schedule.static_text import (
     choose_day_text, 
@@ -30,6 +32,10 @@ from tgbot.handlers.schedule.static_text import (
     put_format_of_learning,
     file_is_added,
     send_your_files_text,
+    number_requested_text,
+    sucessful_file_deletion,
+    no_files_yet,
+    nothing_to_delete_text,
     TIME_TO_EDIT,
     NO_MORE_FILES_BUTTON,
     MORE_FILES_BUTTON,
@@ -68,13 +74,20 @@ def make_string_schedule(sched):
 #sending file schedule
 def send_file_schedule(update: Update, context: CallbackContext):
     internal_resource = InternalResource.get_schedule()
-    internal_files = InternalResourceFile.get_files(internal_resource=internal_resource)
-    for internal_file in internal_files:
-        if internal_file.photo_id:    
-            update.message.reply_photo(photo=internal_file.photo_id)
-        elif internal_file.file_id:
-            update.message.reply_document(document=internal_file.file_id)
-    context.user_data.clear()
+    if internal_resource:
+        internal_files = InternalResourceFile.get_files(internal_resource=internal_resource[0])
+        internal_files_num = len(internal_files)
+    else:
+        update.message.reply_text(text=no_files_yet, reply_markup=ReplyKeyboardRemove())
+        return ConversationHandler.END
+    if internal_files_num > 0:
+        for internal_file in internal_files:
+            if internal_file.photo_id:    
+                update.message.reply_photo(photo=internal_file.photo_id)
+            elif internal_file.file_id:
+                update.message.reply_document(document=internal_file.file_id)
+    else:
+        update.message.reply_text(text=no_files_yet, reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
 
 #sending text schedule
@@ -117,10 +130,32 @@ def make_string_schedule_to_edit(sched):
 #asking user add or delete files
 def add_or_delete_file(update: Update, context: CallbackContext):
     if update.message.text == SEND_PHOTO_FOR_EDITING_BUTTON:
-        update.message.reply_text(text=send_your_files_text)
+        update.message.reply_text(text=send_your_files_text, reply_markup=ReplyKeyboardRemove())
         return SEND_SCHEDULE_FILE_FOR_ADDING
     else:
-        update.message.reply_text(text)
+        internal_resource = InternalResource.get_schedule()
+        if internal_resource:
+            internal_files = InternalResourceFile.get_files(internal_resource=internal_resource[0])
+            internal_files_num = len(internal_files)
+        else:
+            update.message.reply_text(text=nothing_to_delete_text, reply_markup=ReplyKeyboardRemove())
+            return ConversationHandler.END
+        if internal_files_num > 0:
+            update.message.reply_text(
+                text="Выбери файл для удаления", 
+                reply_markup=make_keyboard_for_deleting_file(file_num=internal_files_num)
+            )
+            for i in range(internal_files_num):
+                text = f"{i + 1}"
+                update.message.reply_text(text=text)
+                if internal_files[i].photo_id:    
+                    update.message.reply_photo(photo=internal_files[i].photo_id)
+                elif internal_files[i].file_id:
+                    update.message.reply_document(document=internal_files[i].file_id)
+            return CHOOSE_FILE_TO_DELETE
+        else:
+            update.message.reply_text(text=nothing_to_delete_text, reply_markup=ReplyKeyboardRemove())
+            return ConversationHandler.END
 
 #user send his photos and files
 def add_schedule_photo(update: Update, context: CallbackContext):
@@ -129,27 +164,36 @@ def add_schedule_photo(update: Update, context: CallbackContext):
     internal_resource = InternalResource.update_int_res(name="schedule_files", is_schedule=True)
     internal_file = InternalResourceFile(internal_resource=internal_resource, photo_id=photo_id)
     internal_file.save()
-    update.message.reply_text(text=successful_editing)
     return SEND_SCHEDULE_FILE_FOR_ADDING
     
 def add_schedule_file(update: Update, context: CallbackContext):
-    update.message.reply_text(text="Фото принято...", reply_markup=make_keyboard_to_stop_receiving_files())
+    update.message.reply_text(text="Файл принят...", reply_markup=make_keyboard_to_stop_receiving_files())
     file_id = update.message.document.file_id
     internal_resource = InternalResource.update_int_res(name="schedule_files", is_schedule=True)
     internal_file = InternalResourceFile(internal_resource=internal_resource, file_id=file_id)
     internal_file.save()
-    update.message.reply_text(text=successful_editing)
     return SEND_SCHEDULE_FILE_FOR_ADDING
 
 def end_sending_files(update: Update, context: CallbackContext):
     answer = update.message.text
     if answer == NO_MORE_FILES_BUTTON:
-        update.message.reply_text(text=file_is_added, reply_markup=ReplyKeyboardRemove())
+        update.message.reply_text(text=successful_editing, reply_markup=ReplyKeyboardRemove())
         context.user_data.clear()
         return ConversationHandler.END
     else:
         update.message.reply_text(text=send_your_files_text, reply_markup=ReplyKeyboardRemove())
         return SEND_SCHEDULE_FILE_FOR_ADDING
+
+def delete_chosen_file(update: Update, context: CallbackContext):
+    index_to_delete = int(update.message.text) - 1
+    InternalResourceFile.delete_chosen_file(index=index_to_delete)
+    update.message.reply_text(text=sucessful_file_deletion, reply_markup=ReplyKeyboardRemove())
+    context.user_data.clear()
+    return ConversationHandler.END
+
+def number_requested_to_delete(update: Update, context: CallbackContext):
+    update.message.reply_text(text=number_requested_text)
+    return CHOOSE_FILE_TO_DELETE
 
 def send_keyboard_for_editing_time(update: Update, context: CallbackContext):
     day = update.message.text.split()[1]

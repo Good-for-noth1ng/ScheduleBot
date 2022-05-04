@@ -35,4 +35,7 @@ put_teacher_name = "Введи имя преподавателя"
 put_format_of_learning = "Введите формат обучениия (очно или дистант)"
 file_is_added = "Файл добавлен"
 send_your_files_text = "Отправь файл или фото"
-
+number_requested_text = "Нужно число"
+sucessful_file_deletion = "Файл успешно удален"
+nothing_to_delete_text = "Нечего пока удалять"
+no_files_yet = "Пока нет файлов"

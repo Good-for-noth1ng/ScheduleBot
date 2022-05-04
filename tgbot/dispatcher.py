@@ -99,10 +99,9 @@ def setup_dispatcher(dp):
                 MessageHandler(Filters.text(MORE_FILES_BUTTON), schedule_handlers.end_sending_files)
             ],
             CHOOSE_FILE_TO_DELETE: [
-                
-            ],
-            DELETE_FILE: [
-
+                MessageHandler(Filters.regex(r'^\d*$'), schedule_handlers.delete_chosen_file),
+                MessageHandler(Filters.text(CANCEL_BUTTON), schedule_handlers.cancel_editing),
+                MessageHandler(Filters.all, schedule_handlers.number_requested_to_delete),
             ],
             EDIT_OR_DELETE: [
                 MessageHandler(Filters.text(TIME_TO_EDIT), schedule_handlers.set_or_delete),

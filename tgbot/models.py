@@ -128,12 +128,33 @@ class InternalResource(models.Model):
         return cls.objects.all().filter(is_requirement=True)
     
     @classmethod
+    def get_requirement_by_name(cls, name):
+        if cls.objects.all().filter(is_requirement=True).filter(name=name):
+            return cls.objects.all().filter(is_requirement=True).filter(name=name)[0]
+        else:
+            return False
+
+    @classmethod
     def get_homeworks(cls):
         return cls.objects.all().filter(is_homework=True)
     
     @classmethod
+    def get_homework_by_name(cls, name):
+        if cls.objects.filter(is_homework=True).filter(name=name):
+            return cls.objects.all().filter(is_homework=True).filter(name=name)[0]
+        else:
+            return False
+
+    @classmethod
     def get_solutions(cls):
         return cls.objects.all().filter(is_solution=True)
+
+    @classmethod
+    def get_solutions_by_name(cls, name):
+        if cls.objects.filter(is_solution=True).filter(name=name):
+            return cls.objects.filter(is_solution=True).filter(name=name)[0]
+        else:
+            return False
 
     @classmethod
     def get_schedule(cls):
@@ -168,56 +189,35 @@ class InternalResource(models.Model):
             is_solution=is_solution
         ).exists()
         return does_exist
-        
+    
+    @classmethod
+    def extract_names_for_keyboard(cls, is_requirement=False, is_homework=False, is_solution=False):
+        if is_requirement:
+            int_res = cls.objects.all().filter(is_requirement=True)
+        elif is_homework:
+            int_res = cls.objects.all().filter(is_homework=True)
+        elif is_solution:
+            int_res = cls.objects.all().filter(is_solution=True)
+        buttons = []
+        for internal_resource in int_res:
+            buttons.append(internal_resource.name)
+        return buttons
 
     @classmethod
-    def make_string_for_choosing(cls, is_requirement=False, is_homework=False, is_solution=False, is_schedule=False):
-        if is_requirement:
-            int_res = cls.objects.all().filter(is_requirement=True)
-        elif is_homework:
-            int_res = cls.objects.all().filter(is_homework=True)
-        elif is_solution:
-            int_res = cls.objects.all().filter(is_solution=True)
-        text = ""
-        for i in range(0, len(int_res)):
-            text += f"{i+1} - {int_res[i].name}\n"
-        return text
+    def deleting_requirements_by_name(cls, name):
+        int_res = cls.get_requirement_by_name(name=name)
+        int_res.delete()
+
+    @classmethod
+    def deleting_homework_by_name(cls, name):
+        int_res = cls.get_homework_by_name(name=name)
+        int_res.delete()
+
+    @classmethod
+    def deleting_solutions_by_name(cls, name):
+        int_res = cls.get_solutions_by_name(name=name)
+        int_res.delete()
     
-    @classmethod
-    def deleting_requirements_by_index(cls, index):
-        int_res = cls.objects.all().filter(is_requirement=True)
-        int_res[index].delete()
-    
-    @classmethod
-    def deleting_homework_by_index(cls, index):
-        int_res = cls.objects.all().filter(is_homework=True)
-        int_res[index].delete()
-    
-    @classmethod
-    def deleting_solutions_by_index(cls, index):
-        int_res = cls.objects.all().filter(is_solution=True)
-        int_res[index].delete()
-        
-    @classmethod
-    def sending_chosen_int_res(cls, index, update: Update, is_requirement=False, is_homework=False, is_solution=False):
-        if is_requirement:
-            int_res = cls.objects.all().filter(is_requirement=True)
-        elif is_homework:
-            int_res = cls.objects.all().filter(is_homework=True)
-        elif is_solution:
-            int_res = cls.objects.all().filter(is_solution=True)
-        
-        text = f"🧭 {int_res[index].name}\n"
-        
-        if int_res[index].text:
-            text += f"{int_res[index].text}"
-            update.message.reply_text(text=text)
-        # elif int_res[index].file_id:
-        #     update.message.reply_text(text=text)
-        #     update.message.reply_document(document=int_res[index].file_id)
-        # elif int_res[index].photo_id:
-        #     update.message.reply_text(text=text)
-        #     update.message.reply_photo(photo=int_res[index].photo_id)
 
     @classmethod
     def update_int_res(cls, name, is_solution=False, is_requirement=False, is_homework=False, is_schedule=False):

@@ -10,7 +10,7 @@ no_requirements_yet_text = "Пока нет требований"
 add_or_delete_text = "Добавить или удалить?"
 
 put_name_text = "Какой предмет? Как зовут препода?"
-isnt_unique_name_text = "Такое имя уже есть попробуй снова"
+isnt_unique_name_text = "Такое имя уже есть, попробуй снова"
 
 put_requirement_task_text = """Можешь печатать само требование, или отправить фото, или отправить файл. 
 Можно отправить несколько фото"""
@@ -26,7 +26,8 @@ nothing_to_delete_text = "Пока нечего удалять"
 number_requested_text = "Нужно ввести число, а не буковы"
 cancel_text = "Действие отменено"
 send_your_files_text = "Ну так отправь"
-
+no_such_name_text = "Такого имени нет, попробуй снова"
+choose_to_delete_by_name_text = "Выбери файл для удаления"
 ADD_BUTTON = "Добавить"
 DELETE_BUTTON = "Удалить"
 CANCEL_BUTTON = "Отмена"

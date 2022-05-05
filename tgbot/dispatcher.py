@@ -190,8 +190,8 @@ def setup_dispatcher(dp):
         ], 
         states={
             int_cs.SEND_STATE: [
-                MessageHandler(Filters.regex(r'^\d*$'), int_handlers.send),
                 MessageHandler(Filters.text(int_st.CANCEL_BUTTON), int_handlers.cancel),
+                MessageHandler(Filters.text, int_handlers.send),
                 MessageHandler(Filters.all, int_handlers.number_requested_to_choose),
             ]
         }, 
@@ -229,8 +229,8 @@ def setup_dispatcher(dp):
                 MessageHandler(Filters.photo, int_handlers.add_task_photo),
             ],
             int_cs.DELETE_STATE: [
-                MessageHandler(Filters.regex(r'^\d*$'), int_handlers.delete),
                 MessageHandler(Filters.text(int_st.CANCEL_BUTTON), int_handlers.cancel),
+                MessageHandler(Filters.text, int_handlers.delete),
                 MessageHandler(Filters.all, int_handlers.number_requested_to_delete),
             ]
         }, 

@@ -14,11 +14,9 @@ def make_keyboard_add_or_delete()->ReplyKeyboardMarkup:
     buttons.append(ADD_BUTTON)
     buttons.append(DELETE_BUTTON)
     menu = build_menu(buttons=buttons, n_cols=2)
-    return ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
+    return ReplyKeyboardMarkup(keyboard=menu, resize_keyboard=True, one_time_keyboard=True)
 
-def make_keyboard_to_choose(link_list_lenght)->ReplyKeyboardMarkup:
-    buttons = []
-    for n in range(0, link_list_lenght):
-        buttons.append(str(n+1))
-    menu = build_menu(buttons=buttons, n_cols=4, header_buttons=CANCEL_BUTTON)
-    return ReplyKeyboardMarkup(keyboard=menu, one_time_keyboard=True)
+def make_keyboard_to_choose(buttons)->ReplyKeyboardMarkup:
+    menu = build_menu(buttons=buttons, n_cols=2, header_buttons=CANCEL_BUTTON)
+    return ReplyKeyboardMarkup(keyboard=menu, resize_keyboard=True, one_time_keyboard=True)
+    

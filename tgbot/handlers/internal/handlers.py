@@ -55,7 +55,7 @@ def ask_which_solution(update: Update, context: CallbackContext):
     
 def ask_which_requirement(update: Update, context: CallbackContext):
     int_num = InternalResource.get_num_of_requirements()
-    context.user_data["int_type"] = "requirements"
+    context.user_data["int_type"] = "requirement"
     buttons = setting_reply_keyboard(int_num=int_num, is_requirement=True)
     if buttons:
         update.message.reply_text(
@@ -139,7 +139,7 @@ def start_delete(update: Update, context: CallbackContext):
         )
         return int_cs.DELETE_STATE
     else:
-        update.message.reply_text(text=int_st.nothing_to_delete_text)
+        update.message.reply_text(text=int_st.nothing_to_delete_text, reply_markup=ReplyKeyboardRemove())
         context.user_data.clear()
         return ConversationHandler.END
 

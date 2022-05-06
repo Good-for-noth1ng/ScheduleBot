@@ -8,21 +8,20 @@ import tgbot.handlers.external.static_text as st
 from tgbot.handlers.external.keyboards import make_keyboard_add_or_delete, make_keyboard_to_choose
 import tgbot.handlers.external.conversation_state as cs
 
-def setting_answer_string(ext_num, is_book=False, is_link=False):
+def setting_reply_keyboard(ext_num, is_book=False, is_link=False):
     if ext_num > 0:
-        text = ExternalResource.make_string_for_choosing(is_link_to_book=is_book, is_link_to_command=is_link)
+        buttons = ExternalResource.extract_names_for_keyboard(is_book=is_book, is_link=is_link)
+        return buttons
     else:
-        text = False
-    return text
+        return False
 
 def ask_which_book(update: Update, context: CallbackContext):
     ext_num = ExternalResource.get_books_num()
     context.user_data["ext_type"] = "book"
-    text = setting_answer_string(ext_num=ext_num, is_book=True)
-    if text:
-        update.message.reply_text(text=st.which_book_text)
-        update.message.reply_text(text=text, reply_markup=make_keyboard_to_choose(link_list_lenght=ext_num))
-        return cs.CHOOSE_CATEGORY_STATE
+    buttons = setting_reply_keyboard(ext_num=ext_num, is_book=True)
+    if buttons:
+        update.message.reply_text(text=st.which_book_text, reply_markup=make_keyboard_to_choose(buttons=buttons))
+        return cs.SEND_STATE
     else:
         update.message.reply_text(text=st.nothing_yet_text)
         return ConversationHandler.END 
@@ -30,23 +29,28 @@ def ask_which_book(update: Update, context: CallbackContext):
 def ask_which_link(update: Update, context: CallbackContext):
     ext_num = ExternalResource.get_urls_num()
     context.user_data["ext_type"] = "link"
-    text = setting_answer_string(ext_num=ext_num, is_link=True)
-    if text:
-        update.message.reply_text(text=st.which_link_text)
-        update.message.reply_text(text=text, reply_markup=make_keyboard_to_choose(link_list_lenght=ext_num))
-        return cs.CHOOSE_CATEGORY_STATE
+    buttons = setting_reply_keyboard(ext_num=ext_num, is_link=True)
+    if buttons:
+        update.message.reply_text(text=st.which_link_text, reply_markup=make_keyboard_to_choose(buttons=buttons))
+        return cs.SEND_STATE
     else:
         update.message.reply_text(text=st.nothing_yet_text)
-        return ConversationHandler.END
+        return ConversationHandler.END 
 
 def send(update: Update, context: CallbackContext):
-    chosen_index = int(update.message.text) - 1
+    chosen_name = update.message.text
     if context.user_data["ext_type"] == "book":
-        ExternalResource.sending_chosen_ext_res(index=chosen_index, update=update, is_link_to_book=True)
+        ext_res = ExternalResource.get_books_by_name(name=chosen_name)
     elif context.user_data["ext_type"] == "link":
-        ExternalResource.sending_chosen_ext_res(index=chosen_index, update=update, is_link_to_command=True)
-    context.user_data.clear()
-    return ConversationHandler.END
+        ext_res = ExternalResource.get_urls_by_name(name=chosen_name)
+    if ext_res:
+        text = f"🔍 {ext_res.name} 🔗 {ext_res.url}"
+        update.message.reply_text(text=text, reply_markup=ReplyKeyboardRemove())
+        context.user_data.clear()
+        return ConversationHandler.END
+    else:
+        update.message.reply_text(text=st.no_such_name_text)
+        return cs.SEND_STATE
 
 def ask_add_or_delete_book(update: Update, context: CallbackContext):
     context.user_data["ext_type"] = "book"
@@ -76,8 +80,8 @@ def start_delete(update: Update, context: CallbackContext):
         is_link = True
 
     if ext_num > 0:
-        text = ExternalResource.make_string_for_choosing(is_link_to_book=is_book, is_link_to_command=is_link)
-        update.message.reply_text(text=text, reply_markup=make_keyboard_to_choose(link_list_lenght=ext_num))
+        buttons = ExternalResource.extract_names_for_keyboard(is_book=is_book, is_link=is_link)
+        update.message.reply_text(text=st.choose_name_to_delete_text, reply_markup=make_keyboard_to_choose(buttons=buttons))
         return cs.DELETE_STATE
     else: 
         update.message.reply_text(text=st.nothing_to_delete_text)
@@ -114,21 +118,21 @@ def url_requested(update: Update, context: CallbackContext):
     return cs.ADD_URL_STATE
 
 def delete(update: Update, context: CallbackContext):
-    deletion_index = int(update.message.text) - 1
+    chosen_name = update.message.text
     if context.user_data["ext_type"] == "book":
-        ExternalResource.deleting_by_index(index=deletion_index, is_link_to_book=True)
+        ExternalResource.deleting_book_by_name(name=chosen_name)
     elif context.user_data["ext_type"] == "link":
-        ExternalResource.deleting_by_index(index=deletion_index, is_link_to_command=True)
+        ExternalResource.deleting_link_by_name(name=chosen_name)
     update.message.reply_text(text=st.successful_del_text, reply_markup=ReplyKeyboardRemove())
     context.user_data.clear()
     return ConversationHandler.END
 
-def number_requested_to_delete(update: Update, context: CallbackContext):
-    update.message.reply_text(text=st.number_requested_text)
+def text_requested_to_delete(update: Update, context: CallbackContext):
+    update.message.reply_text(text=st.text_requested)
     return cs.DELETE_STATE
 
-def number_requested_to_choose(update: Update, context: CallbackContext):
-    update.message.reply_text(text=st.number_requested_text)
+def text_requested_to_choose(update: Update, context: CallbackContext):
+    update.message.reply_text(text=st.text_requested)
     return cs.SEND_STATE
 
 def stop(update: Update, context: CallbackContext):

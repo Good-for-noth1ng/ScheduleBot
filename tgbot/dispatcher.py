@@ -142,9 +142,9 @@ def setup_dispatcher(dp):
         ], 
         states={
             cs.SEND_STATE: [
-                MessageHandler(Filters.regex(r'^\d*$'), ext_handlers.send),
                 MessageHandler(Filters.text(st.CANCEL_BUTTON), ext_handlers.cancel),
-                MessageHandler(Filters.all, ext_handlers.number_requested_to_choose),
+                MessageHandler(Filters.text, ext_handlers.send),
+                MessageHandler(Filters.all, ext_handlers.text_requested_to_choose),
             ]
         }, 
         fallbacks=[
@@ -171,9 +171,9 @@ def setup_dispatcher(dp):
                 MessageHandler(Filters.text, ext_handlers.url_requested),
             ],
             cs.DELETE_STATE: [
-                MessageHandler(Filters.regex(r'^\d*$'), ext_handlers.delete),
                 MessageHandler(Filters.text(st.CANCEL_BUTTON), ext_handlers.cancel),
-                MessageHandler(Filters.all, ext_handlers.number_requested_to_delete),
+                MessageHandler(Filters.text, ext_handlers.delete),
+                MessageHandler(Filters.all, ext_handlers.text_requested_to_delete),
             ],
         }, 
         fallbacks=[

@@ -86,7 +86,7 @@ def make_string_schedule_to_edit(sched):
 def add_or_delete_file(update: Update, context: CallbackContext):
     if update.message.text == sched_st.SEND_PHOTO_FOR_EDITING_BUTTON:
         update.message.reply_text(text=sched_st.send_your_files_text, reply_markup=ReplyKeyboardRemove())
-        return SEND_SCHEDULE_FILE_FOR_ADDING
+        return sched_cs.SEND_SCHEDULE_FILE_FOR_ADDING
     else:
         internal_resource = InternalResource.get_schedule()
         if internal_resource:

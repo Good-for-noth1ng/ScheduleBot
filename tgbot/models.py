@@ -71,10 +71,24 @@ class ExternalResource(models.Model):
     @classmethod
     def get_books(cls):
         return cls.objects.all().filter(is_link_to_book=True)
+    
+    @classmethod
+    def get_books_by_name(cls, name):
+        if cls.objects.all().filter(is_link_to_book=True):
+            return cls.objects.all().filter(is_link_to_book=True).filter(name=name)[0]
+        else:
+            return False
 
     @classmethod
     def get_urls(cls):
         return cls.objects.all().filter(is_link_to_command=True)
+
+    @classmethod
+    def get_urls_by_name(cls, name):
+        if cls.objects.all().filter(is_link_to_command=True):
+            return cls.objects.all().filter(is_link_to_command=True).filter(name=name)[0]
+        else:
+            return False
 
     @classmethod
     def get_books_num(cls):
@@ -85,34 +99,26 @@ class ExternalResource(models.Model):
         return cls.objects.all().filter(is_link_to_command=True).count()
     
     @classmethod
-    def make_string_for_choosing(cls, is_link_to_book=False, is_link_to_command=False):
-        if is_link_to_book:
-            ext_res = cls.objects.all().filter(is_link_to_book=True)
-        elif is_link_to_command:
-            ext_res = cls.objects.all().filter(is_link_to_command=True)
-        text = ""
-        for i in range(0, len(ext_res)):
-            text += f"{i+1} - {ext_res[i].name}\n"
-        return text
-    
+    def deleting_book_by_name(cls, name):
+        ext_res = cls.get_books_by_name(name=name)
+        ext_res.delete()
+
     @classmethod
-    def deleting_by_index(cls, index, is_link_to_book=False, is_link_to_command=False):
-        if is_link_to_book:
-            ext_res = cls.objects.all().filter(is_link_to_book=True)
-        elif is_link_to_command:
-            ext_res = cls.objects.all().filter(is_link_to_command=True)
-        ext_res[index].delete()
-    
+    def deleting_link_by_name(cls, name):
+        ext_res = cls.get_urls_by_name(name=name)
+        ext_res.delete()
+
     @classmethod
-    def sending_chosen_ext_res(cls, index, update: Update, is_link_to_book=False, is_link_to_command=False):
-        if is_link_to_book:
+    def extract_names_for_keyboard(cls, is_book=False, is_link=False):
+        if is_book:
             ext_res = cls.objects.all().filter(is_link_to_book=True)
-        elif is_link_to_command:
+        elif is_link:
             ext_res = cls.objects.all().filter(is_link_to_command=True)
-        
-        text = f"🔍 {ext_res[index].name} 🔗 {ext_res[index].url}"
-        update.message.reply_text(text=text)
-    
+        buttons = []
+        for external_resource in ext_res:
+            buttons.append(external_resource.name)
+        return buttons
+
 #user sends photo, file or text. This set can be requirement, homework or soluton
 #telegram will store these photos and files, db will store the text 
 class InternalResource(models.Model):

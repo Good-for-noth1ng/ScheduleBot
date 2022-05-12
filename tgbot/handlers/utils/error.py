@@ -26,10 +26,9 @@ def send_stacktrace_to_tg_chat(update: Update, context: CallbackContext) -> None
     )
 
     user_message = """
-😔 Something broke inside the bot.
-It is because we are constantly improving our service but sometimes we might forget to test some basic stuff.
-We already received all the details to fix the issue.
-Return to /start
+😔 Что-то пошло не так.
+Вся информация по ошибке получена, скоро всё будет исправлено.
+Вернуться: /start
 """
     context.bot.send_message(
         chat_id=u.user_id,

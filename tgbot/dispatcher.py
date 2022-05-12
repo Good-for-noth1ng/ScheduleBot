@@ -22,32 +22,9 @@ from tgbot.handlers.utils import files, error
 from tgbot.handlers.onboarding import handlers as onboarding_handlers
 
 from tgbot.handlers.schedule import handlers as schedule_handlers
-from tgbot.handlers.schedule.static_text import (
-    DAYS_TO_CHOOSE, 
-    DAYS_TO_EDIT,
-    TIME_TO_EDIT,
-    CANCEL_BUTTON,
-    SET_BUTTON,
-    DELETE_BUTTON,
-    SKIP_BUTTON,
-    SEND_PHOTO_BUTTON,
-    SEND_PHOTO_FOR_EDITING_BUTTON,
-    NO_MORE_FILES_BUTTON,
-    MORE_FILES_BUTTON,
-    DELETE_PHOTO_BUTTON
-)
-from tgbot.handlers.schedule.conversation_states import (
-    CHOOSE_TIME,
-    CHOOSE_TIME_FOR_EDITING,
-    EDIT_OR_DELETE,
-    EDIT_LESSON,
-    EDIT_GROUP,
-    EDIT_TEACHER,
-    EDIT_PLACE,
-    SEND_SCHEDULE_FILE_FOR_ADDING,
-    CHOOSE_FILE_TO_DELETE,
-    DELETE_FILE,
-)
+
+import tgbot.handlers.schedule.static_text as schedule_st
+import tgbot.handlers.schedule.conversation_states as schedule_cs
 
 from tgbot.handlers.external import handlers as ext_handlers
 import tgbot.handlers.external.static_text as st
@@ -70,9 +47,9 @@ def setup_dispatcher(dp):
             CommandHandler("schedule", schedule_handlers.choose_day),
         ], 
         states={
-            CHOOSE_TIME: [
-                MessageHandler(Filters.text(DAYS_TO_CHOOSE), schedule_handlers.send_schedule),
-                MessageHandler(Filters.text(SEND_PHOTO_BUTTON), schedule_handlers.send_file_schedule)
+            schedule_cs.CHOOSE_TIME: [
+                MessageHandler(Filters.text(schedule_st.DAYS_TO_CHOOSE), schedule_handlers.send_schedule),
+                MessageHandler(Filters.text(schedule_st.SEND_PHOTO_BUTTON), schedule_handlers.send_file_schedule)
             ],
         }, 
         fallbacks=[
@@ -86,46 +63,46 @@ def setup_dispatcher(dp):
             CommandHandler("editschedule", schedule_handlers.send_keyboard_for_editing_day),
         ],
         states={
-            CHOOSE_TIME_FOR_EDITING: [
-                MessageHandler(Filters.text(DAYS_TO_EDIT), schedule_handlers.send_keyboard_for_editing_time),
-                MessageHandler(Filters.text(SEND_PHOTO_FOR_EDITING_BUTTON), schedule_handlers.add_or_delete_file),
-                MessageHandler(Filters.text(DELETE_PHOTO_BUTTON), schedule_handlers.add_or_delete_file),
-                MessageHandler(Filters.text(CANCEL_BUTTON), schedule_handlers.cancel_editing),
+            schedule_cs.CHOOSE_TIME_FOR_EDITING: [
+                MessageHandler(Filters.text(schedule_st.DAYS_TO_EDIT), schedule_handlers.send_keyboard_for_editing_time),
+                MessageHandler(Filters.text(schedule_st.SEND_PHOTO_FOR_EDITING_BUTTON), schedule_handlers.add_or_delete_file),
+                MessageHandler(Filters.text(schedule_st.DELETE_PHOTO_BUTTON), schedule_handlers.add_or_delete_file),
+                MessageHandler(Filters.text(schedule_st.CANCEL_BUTTON), schedule_handlers.cancel_editing),
             ],
-            SEND_SCHEDULE_FILE_FOR_ADDING: [
+            schedule_cs.SEND_SCHEDULE_FILE_FOR_ADDING: [
                 MessageHandler(Filters.photo, schedule_handlers.add_schedule_photo),
                 MessageHandler(Filters.document, schedule_handlers.add_schedule_file),
-                MessageHandler(Filters.text(NO_MORE_FILES_BUTTON), schedule_handlers.end_sending_files),
-                MessageHandler(Filters.text(MORE_FILES_BUTTON), schedule_handlers.end_sending_files)
+                MessageHandler(Filters.text(schedule_st.NO_MORE_FILES_BUTTON), schedule_handlers.end_sending_files),
+                MessageHandler(Filters.text(schedule_st.MORE_FILES_BUTTON), schedule_handlers.end_sending_files)
             ],
-            CHOOSE_FILE_TO_DELETE: [
+            schedule_cs.CHOOSE_FILE_TO_DELETE: [
                 MessageHandler(Filters.regex(r'^\d*$'), schedule_handlers.delete_chosen_file),
-                MessageHandler(Filters.text(CANCEL_BUTTON), schedule_handlers.cancel_editing),
+                MessageHandler(Filters.text(schedule_st.CANCEL_BUTTON), schedule_handlers.cancel_editing),
                 MessageHandler(Filters.all, schedule_handlers.number_requested_to_delete),
             ],
-            EDIT_OR_DELETE: [
-                MessageHandler(Filters.text(TIME_TO_EDIT), schedule_handlers.set_or_delete),
-                MessageHandler(Filters.text(CANCEL_BUTTON), schedule_handlers.cancel_editing),
-                MessageHandler(Filters.text(SET_BUTTON), schedule_handlers.send_request_for_editing),
-                MessageHandler(Filters.text(DELETE_BUTTON), schedule_handlers.clear_chosen_time_field),
+            schedule_cs.EDIT_OR_DELETE: [
+                MessageHandler(Filters.text(schedule_st.TIME_TO_EDIT), schedule_handlers.set_or_delete),
+                MessageHandler(Filters.text(schedule_st.CANCEL_BUTTON), schedule_handlers.cancel_editing),
+                MessageHandler(Filters.text(schedule_st.SET_BUTTON), schedule_handlers.send_request_for_editing),
+                MessageHandler(Filters.text(schedule_st.DELETE_BUTTON), schedule_handlers.clear_chosen_time_field),
             ],
-            EDIT_LESSON: [
-                MessageHandler(Filters.text(CANCEL_BUTTON), schedule_handlers.cancel_editing),
+            schedule_cs.EDIT_LESSON: [
+                MessageHandler(Filters.text(schedule_st.CANCEL_BUTTON), schedule_handlers.cancel_editing),
                 MessageHandler(Filters.text, schedule_handlers.change_lesson),
             ],
-            EDIT_PLACE: [
-                MessageHandler(Filters.text(CANCEL_BUTTON), schedule_handlers.cancel_editing),
-                MessageHandler(Filters.text(SKIP_BUTTON), schedule_handlers.skip_place_change),
+            schedule_cs.EDIT_PLACE: [
+                MessageHandler(Filters.text(schedule_st.CANCEL_BUTTON), schedule_handlers.cancel_editing),
+                MessageHandler(Filters.text(schedule_st.SKIP_BUTTON), schedule_handlers.skip_place_change),
                 MessageHandler(Filters.text, schedule_handlers.change_place_lesson),
             ],
-            EDIT_GROUP: [
-                MessageHandler(Filters.text(CANCEL_BUTTON), schedule_handlers.cancel_editing),
-                MessageHandler(Filters.text(SKIP_BUTTON), schedule_handlers.skip_group_change),
+            schedule_cs.EDIT_GROUP: [
+                MessageHandler(Filters.text(schedule_st.CANCEL_BUTTON), schedule_handlers.cancel_editing),
+                MessageHandler(Filters.text(schedule_st.SKIP_BUTTON), schedule_handlers.skip_group_change),
                 MessageHandler(Filters.text, schedule_handlers.change_group),
             ],
-            EDIT_TEACHER: [
-                MessageHandler(Filters.text(CANCEL_BUTTON), schedule_handlers.cancel_editing),
-                MessageHandler(Filters.text(SKIP_BUTTON), schedule_handlers.skip_teacher_change),
+            schedule_cs.EDIT_TEACHER: [
+                MessageHandler(Filters.text(schedule_st.CANCEL_BUTTON), schedule_handlers.cancel_editing),
+                MessageHandler(Filters.text(schedule_st.SKIP_BUTTON), schedule_handlers.skip_teacher_change),
                 MessageHandler(Filters.text, schedule_handlers.change_teacher),
             ]
         },
@@ -308,15 +285,15 @@ def set_up_commands(bot_instance: Bot) -> None:
             'schedule': 'Узнать расписание 👀',
             'editschedule': 'Изменить расписание ✏️',
             'links': 'Ссылки на команды MSTeams 🔗',
-            'editlinks': 'Добавить/удалить ссылку 🖊️',
+            'editlinks': '+/- ссылку 🖊️',
             'books': 'Список книг 📚',
-            'editbooks': 'Добавить/удалить книгу 📝',
+            'editbooks': '+/- книгу 📝',
             'requirements': 'Список требований 📖',
-            'editrequirements': 'Добавить/удалить требования 🖍️',
+            'editrequirements': '+/- требования 🖍️',
             'homework': 'Узнать что задано 📅',
-            'edithomework': 'Добавить/удалить домашку ✒️',
+            'edithomework': '+/- домашку ✒️',
             'solution': 'Чужие решения 🕯️',
-            'editsolution': 'Добавить/удалить решение 🖋️',
+            'editsolution': '+/- решение 🖋️',
         }
     }
     

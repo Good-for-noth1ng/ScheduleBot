@@ -255,6 +255,13 @@ class InternalResourceFile(models.Model):
         internal_files[index].delete()
 
     @classmethod
+    def delete_chosen_file_by_id(cls, file_id):
+        if InternalResourceFile.objects.all().filter(file_id=file_id):
+            InternalResourceFile.objects.all().filter(file_id=file_id)[0].delete()
+        elif InternalResourceFile.objects.all().filter(photo_id=file_id):
+            InternalResourceFile.objects.all().filter(photo_id=file_id)[0].delete()
+
+    @classmethod
     def get_files_num(cls, internal_resource):
         return cls.objects.all().filter(internal_resource=internal_resource).count()
         

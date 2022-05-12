@@ -95,18 +95,26 @@ def add_or_delete_file(update: Update, context: CallbackContext):
         else:
             update.message.reply_text(text=sched_st.nothing_to_delete_text, reply_markup=ReplyKeyboardRemove())
             return ConversationHandler.END
+        
         if internal_files_num > 0:
             update.message.reply_text(
                 text=sched_st.choose_file_to_delete_text, 
                 reply_markup=make_keyboard_for_deleting_file(file_num=internal_files_num)
             )
+
+            file_list_for_deletion = []
+            
             for i in range(internal_files_num):
                 text = f"{i + 1}"
                 update.message.reply_text(text=text)
-                if internal_files[i].photo_id:    
+                if internal_files[i].photo_id:
+                    file_list_for_deletion.append(internal_files[i].photo_id)    
                     update.message.reply_photo(photo=internal_files[i].photo_id)
                 elif internal_files[i].file_id:
+                    file_list_for_deletion.append(internal_files[i].file_id)
                     update.message.reply_document(document=internal_files[i].file_id)
+                context.user_data["file_list_for_deletion"] = file_list_for_deletion
+
             return sched_cs.CHOOSE_FILE_TO_DELETE
         else:
             update.message.reply_text(text=sched_st.nothing_to_delete_text, reply_markup=ReplyKeyboardRemove())
@@ -141,7 +149,10 @@ def end_sending_files(update: Update, context: CallbackContext):
 
 def delete_chosen_file(update: Update, context: CallbackContext):
     index_to_delete = int(update.message.text) - 1
-    InternalResourceFile.delete_chosen_file(index=index_to_delete)
+    # InternalResourceFile.delete_chosen_file(index=index_to_delete)
+    file_list_for_deleltion = context.user_data["file_list_for_deletion"]
+    file_id = file_list_for_deleltion[index_to_delete]
+    InternalResourceFile.delete_chosen_file_by_id(file_id=file_id)
     update.message.reply_text(text=sched_st.successful_editing, reply_markup=ReplyKeyboardRemove())
     context.user_data.clear()
     return ConversationHandler.END

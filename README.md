@@ -23,8 +23,8 @@ Built-in Telegram bot methods:
 * `/edit<any of commands above>` - allows users to send files, photos and texts. Makes easier to share and keep in one place all of the data
 
 
-Example of telegram bot menu:
+Example of telegram bot menu:<br>
 ![schedule menu](/.github/imgs/example1.jpg)
 
-Example of telegram bot keyboard:
+Example of telegram bot keyboard:<br>
 ![keyboard](/.github/imgs/example2.jpg)

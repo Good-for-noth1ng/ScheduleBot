@@ -149,7 +149,6 @@ def end_sending_files(update: Update, context: CallbackContext):
 
 def delete_chosen_file(update: Update, context: CallbackContext):
     index_to_delete = int(update.message.text) - 1
-    # InternalResourceFile.delete_chosen_file(index=index_to_delete)
     file_list_for_deleltion = context.user_data["file_list_for_deletion"]
     file_id = file_list_for_deleltion[index_to_delete]
     InternalResourceFile.delete_chosen_file_by_id(file_id=file_id)

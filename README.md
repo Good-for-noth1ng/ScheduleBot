@@ -21,6 +21,8 @@ Built-in Telegram bot methods:
 * `/homework` - sending for homework
 * `/solutions` - sending other people solutions they shared with
 * `/edit<any of commands above>` - allows users to send files, photos and texts. Makes easier to share and keep in one place all of the data
+
+
 Example of telegram bot menu:
 ![schedule menu](/.github/imgs/example1.jpg)
 

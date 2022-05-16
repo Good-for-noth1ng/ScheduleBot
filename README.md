@@ -22,6 +22,8 @@ Built-in Telegram bot methods:
 * `/solutions` - sending other people solutions they shared with
 * `/edit<any of commands above>` - allows users to send files, photos and texts. Makes easier to share and keep in one place all of the data
 
+Bot description:<br>
+![start](/.github/imgs/example3.jpg)
 
 Example of telegram bot menu:<br>
 ![schedule menu](/.github/imgs/example1.jpg)

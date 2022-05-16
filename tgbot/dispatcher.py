@@ -17,12 +17,11 @@ from telegram.ext import (
 from dtb.celery import app  # event processing in async mode
 from dtb.settings import TELEGRAM_TOKEN, DEBUG, PORT, HEROKU_APP_NAME
 
-from tgbot.handlers.utils import files, error
+from tgbot.handlers.utils import error 
 
 from tgbot.handlers.onboarding import handlers as onboarding_handlers
 
 from tgbot.handlers.schedule import handlers as schedule_handlers
-
 import tgbot.handlers.schedule.static_text as schedule_st
 import tgbot.handlers.schedule.conversation_states as schedule_cs
 
@@ -216,11 +215,6 @@ def setup_dispatcher(dp):
         ]
     ))
     
-    # files
-    # dp.add_handler(MessageHandler(
-    #     Filters.animation, files.show_file_id,
-    # ))
-
     # handling errors
     dp.add_error_handler(error.send_stacktrace_to_tg_chat)
 
